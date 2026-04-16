@@ -10,9 +10,9 @@ import { toast } from "sonner";
 import { Copy, Clock, Upload, AlertTriangle, CheckCircle2, MessageCircle } from "lucide-react";
 
 const BANK_DETAILS = {
-  bankName: "GTBank (Guaranty Trust Bank)",
-  accountName: "KAYASY ALL IN ONE COLLECTION",
-  accountNumber: "0123456789",
+  bankName: "United Bank for Africa (UBA)",
+  accountName: "SAMUEL EMMANUEL",
+  accountNumber: "2211235178",
 };
 
 const TIMER_MINUTES = 30;
