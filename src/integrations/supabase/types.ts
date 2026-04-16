@@ -174,6 +174,10 @@ export type Database = {
           delivery_state: string | null
           id: string
           notes: string | null
+          payment_expires_at: string | null
+          payment_proof_url: string | null
+          payment_reference: string | null
+          payment_status: string
           status: string
           total: number
           updated_at: string
@@ -187,6 +191,10 @@ export type Database = {
           delivery_state?: string | null
           id?: string
           notes?: string | null
+          payment_expires_at?: string | null
+          payment_proof_url?: string | null
+          payment_reference?: string | null
+          payment_status?: string
           status?: string
           total: number
           updated_at?: string
@@ -200,6 +208,10 @@ export type Database = {
           delivery_state?: string | null
           id?: string
           notes?: string | null
+          payment_expires_at?: string | null
+          payment_proof_url?: string | null
+          payment_reference?: string | null
+          payment_status?: string
           status?: string
           total?: number
           updated_at?: string

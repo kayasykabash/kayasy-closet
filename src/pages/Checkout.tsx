@@ -66,10 +66,10 @@ const CheckoutPage = () => {
       const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
       if (itemsError) throw itemsError;
 
-      // Clear cart
+      // Clear cart and redirect to payment
       await clearCart.mutateAsync();
-      toast.success("Order placed successfully!");
-      navigate("/orders");
+      toast.success("Order created! Complete your payment.");
+      navigate(`/payment?order=${order.id}`);
     } catch (err: any) {
       toast.error(err.message || "Failed to place order");
     } finally {
