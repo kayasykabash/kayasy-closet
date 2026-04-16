@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Package } from "lucide-react";
+import { Package, CreditCard, Truck, CheckCircle2, XCircle, Clock, AlertTriangle } from "lucide-react";
 
 const statusColor: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -12,6 +12,43 @@ const statusColor: Record<string, string> = {
   shipped: "bg-purple-100 text-purple-800",
   delivered: "bg-green-100 text-green-800",
   cancelled: "bg-red-100 text-red-800",
+};
+
+const paymentStatusConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+  unpaid: { label: "Unpaid", color: "bg-red-100 text-red-800", icon: <XCircle className="h-3.5 w-3.5" /> },
+  pending_verification: { label: "Verifying", color: "bg-yellow-100 text-yellow-800", icon: <Clock className="h-3.5 w-3.5" /> },
+  paid: { label: "Paid", color: "bg-green-100 text-green-800", icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
+  rejected: { label: "Rejected", color: "bg-red-100 text-red-800", icon: <AlertTriangle className="h-3.5 w-3.5" /> },
+};
+
+const orderSteps = [
+  { key: "pending", label: "Order Placed", icon: Package },
+  { key: "processing", label: "Processing", icon: CreditCard },
+  { key: "shipped", label: "Shipped", icon: Truck },
+  { key: "delivered", label: "Delivered", icon: CheckCircle2 },
+];
+
+const OrderTracker = ({ status }: { status: string }) => {
+  const currentIdx = orderSteps.findIndex(s => s.key === status);
+  return (
+    <div className="flex items-center gap-1 mt-3">
+      {orderSteps.map((step, i) => {
+        const Icon = step.icon;
+        const isActive = i <= currentIdx;
+        return (
+          <div key={step.key} className="flex items-center gap-1 flex-1">
+            <div className={`flex flex-col items-center flex-1 ${isActive ? "text-primary" : "text-muted-foreground/40"}`}>
+              <Icon className="h-4 w-4 mb-0.5" />
+              <span className="text-[10px] leading-tight text-center">{step.label}</span>
+            </div>
+            {i < orderSteps.length - 1 && (
+              <div className={`h-0.5 flex-1 rounded ${i < currentIdx ? "bg-primary" : "bg-muted"}`} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 };
 
 const OrdersPage = () => {
@@ -56,31 +93,56 @@ const OrdersPage = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {orders.map(order => (
-              <div key={order.id} className="border rounded-lg p-4 bg-card">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Order #{order.id.slice(0, 8)}</p>
-                    <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
-                  </div>
-                  <Badge className={statusColor[order.status] || "bg-muted"}>
-                    {order.status}
-                  </Badge>
-                </div>
-                <div className="space-y-1 text-sm">
-                  {(order as any).order_items?.map((item: any) => (
-                    <div key={item.id} className="flex justify-between">
-                      <span>{item.product_name} x{item.quantity}</span>
-                      <span>₦{(item.price * item.quantity).toLocaleString()}</span>
+            {orders.map(order => {
+              const ps = paymentStatusConfig[order.payment_status] || paymentStatusConfig.unpaid;
+              return (
+                <div key={order.id} className="border rounded-lg p-4 bg-card">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Order #{order.id.slice(0, 8)}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-2">
+                      <Badge className={ps.color + " flex items-center gap-1 text-[10px]"}>
+                        {ps.icon} {ps.label}
+                      </Badge>
+                      <Badge className={statusColor[order.status] || "bg-muted"}>
+                        {order.status}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {order.payment_status === "rejected" && (
+                    <div className="flex items-center gap-2 p-2 rounded bg-destructive/10 text-destructive text-xs mb-2">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      Payment rejected — please <Link to={`/payment?order=${order.id}`} className="underline font-medium">retry payment</Link>
+                    </div>
+                  )}
+
+                  {order.payment_status === "unpaid" && order.status === "pending" && (
+                    <div className="flex items-center gap-2 p-2 rounded bg-accent/50 text-xs mb-2">
+                      <CreditCard className="h-3.5 w-3.5 text-primary" />
+                      <Link to={`/payment?order=${order.id}`} className="text-primary underline font-medium">Complete Payment</Link>
+                    </div>
+                  )}
+
+                  <div className="space-y-1 text-sm">
+                    {(order as any).order_items?.map((item: any) => (
+                      <div key={item.id} className="flex justify-between">
+                        <span>{item.product_name} x{item.quantity}</span>
+                        <span>₦{(item.price * item.quantity).toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border-t mt-3 pt-2 flex justify-between font-bold text-sm">
+                    <span>Total</span>
+                    <span className="text-primary">₦{Number(order.total).toLocaleString()}</span>
+                  </div>
+
+                  {order.status !== "cancelled" && <OrderTracker status={order.status} />}
                 </div>
-                <div className="border-t mt-3 pt-2 flex justify-between font-bold text-sm">
-                  <span>Total</span>
-                  <span className="text-primary">₦{Number(order.total).toLocaleString()}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
