@@ -221,6 +221,8 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
         </Select>
       </div>
       <div><Label>Sizes (comma-separated)</Label><Input value={form.sizes} onChange={e => setForm(f => ({ ...f, sizes: e.target.value }))} placeholder="S, M, L, XL" /></div>
+      <div><Label>Colors (comma-separated)</Label><Input value={form.colors} onChange={e => setForm(f => ({ ...f, colors: e.target.value }))} placeholder="Red, Blue, Black" /></div>
+      <div><Label>Designs (comma-separated)</Label><Input value={form.designs} onChange={e => setForm(f => ({ ...f, designs: e.target.value }))} placeholder="Floral, Plain, Striped" /></div>
       <div><Label>Stock</Label><Input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} /></div>
 
       {/* Image upload */}
