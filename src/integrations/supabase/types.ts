@@ -43,7 +43,9 @@ export type Database = {
       }
       cart_items: {
         Row: {
+          color: string | null
           created_at: string
+          design: string | null
           id: string
           product_id: string
           quantity: number
@@ -51,7 +53,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          color?: string | null
           created_at?: string
+          design?: string | null
           id?: string
           product_id: string
           quantity?: number
@@ -59,7 +63,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          color?: string | null
           created_at?: string
+          design?: string | null
           id?: string
           product_id?: string
           quantity?: number
@@ -119,6 +125,8 @@ export type Database = {
       }
       order_items: {
         Row: {
+          color: string | null
+          design: string | null
           id: string
           order_id: string
           price: number
@@ -129,6 +137,8 @@ export type Database = {
           size: string | null
         }
         Insert: {
+          color?: string | null
+          design?: string | null
           id?: string
           order_id: string
           price: number
@@ -139,6 +149,8 @@ export type Database = {
           size?: string | null
         }
         Update: {
+          color?: string | null
+          design?: string | null
           id?: string
           order_id?: string
           price?: number
@@ -167,14 +179,17 @@ export type Database = {
       }
       orders: {
         Row: {
+          amount_due: number | null
           created_at: string
           delivery_address: string
           delivery_city: string | null
           delivery_phone: string | null
           delivery_state: string | null
+          due_date: string | null
           id: string
           notes: string | null
           payment_expires_at: string | null
+          payment_method: string
           payment_proof_url: string | null
           payment_reference: string | null
           payment_status: string
@@ -184,14 +199,17 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          amount_due?: number | null
           created_at?: string
           delivery_address: string
           delivery_city?: string | null
           delivery_phone?: string | null
           delivery_state?: string | null
+          due_date?: string | null
           id?: string
           notes?: string | null
           payment_expires_at?: string | null
+          payment_method?: string
           payment_proof_url?: string | null
           payment_reference?: string | null
           payment_status?: string
@@ -201,14 +219,17 @@ export type Database = {
           user_id: string
         }
         Update: {
+          amount_due?: number | null
           created_at?: string
           delivery_address?: string
           delivery_city?: string | null
           delivery_phone?: string | null
           delivery_state?: string | null
+          due_date?: string | null
           id?: string
           notes?: string | null
           payment_expires_at?: string | null
+          payment_method?: string
           payment_proof_url?: string | null
           payment_reference?: string | null
           payment_status?: string
@@ -222,9 +243,11 @@ export type Database = {
       products: {
         Row: {
           category_id: string | null
+          colors: string[] | null
           compare_at_price: number | null
           created_at: string
           description: string | null
+          designs: string[] | null
           id: string
           images: string[] | null
           is_active: boolean | null
@@ -240,9 +263,11 @@ export type Database = {
         }
         Insert: {
           category_id?: string | null
+          colors?: string[] | null
           compare_at_price?: number | null
           created_at?: string
           description?: string | null
+          designs?: string[] | null
           id?: string
           images?: string[] | null
           is_active?: boolean | null
@@ -258,9 +283,11 @@ export type Database = {
         }
         Update: {
           category_id?: string | null
+          colors?: string[] | null
           compare_at_price?: number | null
           created_at?: string
           description?: string | null
+          designs?: string[] | null
           id?: string
           images?: string[] | null
           is_active?: boolean | null
@@ -291,6 +318,9 @@ export type Database = {
           city: string | null
           country: string | null
           created_at: string
+          credit_approved: boolean
+          credit_balance: number
+          credit_limit: number
           full_name: string | null
           id: string
           is_blocked: boolean
@@ -305,6 +335,9 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
+          credit_approved?: boolean
+          credit_balance?: number
+          credit_limit?: number
           full_name?: string | null
           id?: string
           is_blocked?: boolean
@@ -319,6 +352,9 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
+          credit_approved?: boolean
+          credit_balance?: number
+          credit_limit?: number
           full_name?: string | null
           id?: string
           is_blocked?: boolean
