@@ -16,6 +16,8 @@ const ProductPage = () => {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { user } = useAuth();
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedColor, setSelectedColor] = useState<string>("");
+  const [selectedDesign, setSelectedDesign] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
 
   if (isLoading) {
@@ -49,10 +51,16 @@ const ProductPage = () => {
     : 0;
 
   const handleAddToCart = () => {
-    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
-      return;
-    }
-    addToCart.mutate({ productId: product.id, quantity, size: selectedSize || undefined });
+    if (product.sizes && product.sizes.length > 0 && !selectedSize) return;
+    if ((product as any).colors?.length > 0 && !selectedColor) return;
+    if ((product as any).designs?.length > 0 && !selectedDesign) return;
+    addToCart.mutate({
+      productId: product.id,
+      quantity,
+      size: selectedSize || undefined,
+      color: selectedColor || undefined,
+      design: selectedDesign || undefined,
+    });
   };
 
   return (
@@ -111,6 +119,34 @@ const ProductPage = () => {
                     >
                       {size}
                     </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(product as any).colors?.length > 0 && (
+              <div className="mb-6">
+                <Label className="text-sm font-medium mb-2 block">Color</Label>
+                <div className="flex flex-wrap gap-2">
+                  {(product as any).colors.map((c: string) => (
+                    <button key={c} onClick={() => setSelectedColor(c)}
+                      className={`px-3 py-1.5 border rounded text-sm transition-colors ${
+                        selectedColor === c ? "border-primary bg-primary/10 text-primary font-medium" : "hover:border-foreground"
+                      }`}>{c}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(product as any).designs?.length > 0 && (
+              <div className="mb-6">
+                <Label className="text-sm font-medium mb-2 block">Design</Label>
+                <div className="flex flex-wrap gap-2">
+                  {(product as any).designs.map((d: string) => (
+                    <button key={d} onClick={() => setSelectedDesign(d)}
+                      className={`px-3 py-1.5 border rounded text-sm transition-colors ${
+                        selectedDesign === d ? "border-primary bg-primary/10 text-primary font-medium" : "hover:border-foreground"
+                      }`}>{d}</button>
                   ))}
                 </div>
               </div>
