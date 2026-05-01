@@ -147,7 +147,7 @@ const CheckoutPage = () => {
             {paymentMethod !== "pickup" && (
               <div>
                 <Label htmlFor="address">Delivery Address</Label>
-                <Textarea id="address" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} required={paymentMethod !== "pickup"} placeholder="Street address" />
+                <Textarea id="address" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} required placeholder="Street address" />
               </div>
             )}
             <div className="grid grid-cols-2 gap-4">
