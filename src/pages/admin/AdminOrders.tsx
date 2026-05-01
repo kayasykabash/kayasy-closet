@@ -129,9 +129,12 @@ export default function AdminOrders() {
                   <td className="p-3 font-mono text-xs">#{o.id.slice(0, 8)}</td>
                   <td className="p-3 hidden sm:table-cell text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
                   <td className="p-3">
-                    <Badge variant="outline" className={`text-xs capitalize ${paymentBadgeColor(o.payment_status)}`}>
-                      {o.payment_status === "pending_verification" ? "Pending" : o.payment_status}
-                    </Badge>
+                    <div className="flex flex-col gap-1">
+                      <Badge variant="outline" className={`text-xs capitalize ${paymentBadgeColor(o.payment_status)}`}>
+                        {o.payment_status === "pending_verification" ? "Pending" : o.payment_status}
+                      </Badge>
+                      <span className="text-[10px] text-muted-foreground capitalize">{(o.payment_method || "bank_transfer").replace(/_/g, " ")}</span>
+                    </div>
                   </td>
                   <td className="p-3">
                     <Select value={o.status} onValueChange={v => updateStatus.mutate({ id: o.id, status: v })}>
