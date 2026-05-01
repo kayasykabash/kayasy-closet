@@ -7,16 +7,17 @@ export default function AdminDashboard() {
   const { data: stats } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      const [products, orders, users] = await Promise.all([
+      const [products, orders, profiles] = await Promise.all([
         supabase.from("products").select("id", { count: "exact", head: true }),
-        supabase.from("orders").select("id, total, created_at, status"),
+        supabase.from("orders").select("id, total, created_at, status, payment_status"),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
       ]);
-      const totalRevenue = orders.data?.reduce((s, o) => s + Number(o.total), 0) || 0;
+      const paidOrders = orders.data?.filter(o => o.payment_status === "paid") || [];
+      const totalRevenue = paidOrders.reduce((s, o) => s + Number(o.total), 0);
       return {
-        products: products.count || 0,
-        orders: orders.data?.length || 0,
-        users: users.count || 0,
+        products: products.count ?? 0,
+        orders: orders.data?.length ?? 0,
+        users: profiles.count ?? 0,
         revenue: totalRevenue,
         recentOrders: orders.data?.slice(0, 5) || [],
       };

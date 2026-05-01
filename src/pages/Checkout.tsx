@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { useCart } from "@/hooks/useCart";
@@ -8,13 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import { Banknote, Truck, Store, CreditCard } from "lucide-react";
+
+type PaymentMethod = "bank_transfer" | "cod" | "pickup" | "credit";
 
 const CheckoutPage = () => {
   const { cartItems, total, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer");
   const [form, setForm] = useState({
     address: "",
     city: "",
@@ -23,35 +29,58 @@ const CheckoutPage = () => {
     notes: "",
   });
 
-  const deliveryFee = total >= 50000 ? 0 : 2500;
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle().then(({ data }) => setProfile(data));
+  }, [user]);
+
+  const deliveryFee = paymentMethod === "pickup" ? 0 : (total >= 50000 ? 0 : 2500);
   const grandTotal = total + deliveryFee;
+
+  const creditAvailable = profile?.credit_approved
+    ? Math.max(0, Number(profile.credit_limit || 0) - Number(profile.credit_balance || 0))
+    : 0;
+  const creditWillExceed = paymentMethod === "credit" && grandTotal > creditAvailable;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || cartItems.length === 0) return;
+    if (paymentMethod === "credit" && !profile?.credit_approved) {
+      toast.error("Your account is not approved for credit. Contact support.");
+      return;
+    }
+    if (creditWillExceed) {
+      toast.error("This purchase exceeds your available credit.");
+      return;
+    }
     setLoading(true);
 
     try {
-      // Create order
+      const orderPayload: any = {
+        user_id: user.id,
+        total: grandTotal,
+        delivery_address: paymentMethod === "pickup" ? "Pickup at store" : form.address,
+        delivery_city: form.city,
+        delivery_state: form.state,
+        delivery_phone: form.phone,
+        notes: form.notes,
+        payment_method: paymentMethod,
+      };
+      // For COD/pickup, payment is collected later; for credit, trigger handles it
+      if (paymentMethod === "cod" || paymentMethod === "pickup") {
+        orderPayload.payment_status = "pending";
+      }
+
       const { data: order, error: orderError } = await supabase
         .from("orders")
-        .insert({
-          user_id: user.id,
-          total: grandTotal,
-          delivery_address: form.address,
-          delivery_city: form.city,
-          delivery_state: form.state,
-          delivery_phone: form.phone,
-          notes: form.notes,
-        })
+        .insert(orderPayload)
         .select()
         .single();
 
       if (orderError) throw orderError;
 
-      // Create order items
-      const orderItems = cartItems.map(item => {
-        const product = (item as any).product;
+      const orderItems = cartItems.map((item: any) => {
+        const product = item.product;
         return {
           order_id: order.id,
           product_id: item.product_id,
@@ -60,16 +89,23 @@ const CheckoutPage = () => {
           quantity: item.quantity,
           price: product?.price || 0,
           size: item.size,
+          color: item.color,
+          design: item.design,
         };
       });
 
       const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
       if (itemsError) throw itemsError;
 
-      // Clear cart and redirect to payment
       await clearCart.mutateAsync();
-      toast.success("Order created! Complete your payment.");
-      navigate(`/payment?order=${order.id}`);
+
+      if (paymentMethod === "bank_transfer") {
+        toast.success("Order created! Complete your bank transfer.");
+        navigate(`/payment?order=${order.id}`);
+      } else {
+        toast.success("Order placed successfully!");
+        navigate(`/orders`);
+      }
     } catch (err: any) {
       toast.error(err.message || "Failed to place order");
     } finally {
@@ -82,30 +118,46 @@ const CheckoutPage = () => {
     return null;
   }
 
+  const methods: { id: PaymentMethod; label: string; desc: string; icon: any; disabled?: boolean }[] = [
+    { id: "bank_transfer", label: "Bank Transfer", desc: "Pay via UBA bank transfer", icon: Banknote },
+    { id: "cod", label: "Cash on Delivery", desc: "Pay when your order arrives", icon: Truck },
+    { id: "pickup", label: "Cash at Pickup", desc: "Pay when you pick up at store", icon: Store },
+    {
+      id: "credit",
+      label: profile?.credit_approved ? `Credit / Bashi (₦${creditAvailable.toLocaleString()} available)` : "Credit / Bashi (not approved)",
+      desc: "Buy now, pay later",
+      icon: CreditCard,
+      disabled: !profile?.credit_approved,
+    },
+  ];
+
   return (
     <Layout>
       <div className="container max-w-2xl py-6">
         <h1 className="font-heading text-2xl font-bold mb-6">Checkout</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Delivery */}
           <div className="border rounded-lg p-6 bg-card space-y-4">
             <h2 className="font-heading font-semibold">Delivery Details</h2>
             <div>
               <Label htmlFor="phone">Phone Number</Label>
               <Input id="phone" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} required placeholder="+234..." />
             </div>
-            <div>
-              <Label htmlFor="address">Delivery Address</Label>
-              <Textarea id="address" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} required placeholder="Street address" />
-            </div>
+            {paymentMethod !== "pickup" && (
+              <div>
+                <Label htmlFor="address">Delivery Address</Label>
+                <Textarea id="address" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} required placeholder="Street address" />
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="city">City</Label>
-                <Input id="city" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} required />
+                <Input id="city" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} required={paymentMethod !== "pickup"} />
               </div>
               <div>
                 <Label htmlFor="state">State</Label>
-                <Input id="state" value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} required />
+                <Input id="state" value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} required={paymentMethod !== "pickup"} />
               </div>
             </div>
             <div>
@@ -114,14 +166,40 @@ const CheckoutPage = () => {
             </div>
           </div>
 
+          {/* Payment Methods */}
+          <div className="border rounded-lg p-6 bg-card space-y-4">
+            <h2 className="font-heading font-semibold">Payment Method</h2>
+            <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
+              {methods.map(m => (
+                <label
+                  key={m.id}
+                  className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    paymentMethod === m.id ? "border-primary bg-primary/5" : "hover:bg-muted/50"
+                  } ${m.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  <RadioGroupItem value={m.id} disabled={m.disabled} className="mt-1" />
+                  <m.icon className="h-5 w-5 mt-0.5 text-primary shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{m.label}</p>
+                    <p className="text-xs text-muted-foreground">{m.desc}</p>
+                  </div>
+                </label>
+              ))}
+            </RadioGroup>
+            {creditWillExceed && (
+              <p className="text-xs text-destructive">This order exceeds your available credit (₦{creditAvailable.toLocaleString()}).</p>
+            )}
+          </div>
+
           {/* Summary */}
           <div className="border rounded-lg p-6 bg-card">
             <h2 className="font-heading font-semibold mb-3">Order Summary</h2>
-            {cartItems.map(item => {
-              const product = (item as any).product;
+            {cartItems.map((item: any) => {
+              const product = item.product;
+              const variant = [item.size, item.color, item.design].filter(Boolean).join(" / ");
               return (
                 <div key={item.id} className="flex justify-between text-sm py-1">
-                  <span>{product?.name} x{item.quantity} {item.size ? `(${item.size})` : ""}</span>
+                  <span>{product?.name} x{item.quantity}{variant ? ` (${variant})` : ""}</span>
                   <span>₦{((product?.price || 0) * item.quantity).toLocaleString()}</span>
                 </div>
               );
@@ -135,7 +213,7 @@ const CheckoutPage = () => {
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading || creditWillExceed}>
             {loading ? "Placing Order..." : `Place Order — ₦${grandTotal.toLocaleString()}`}
           </Button>
         </form>

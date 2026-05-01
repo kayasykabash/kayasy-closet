@@ -139,6 +139,8 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
     compare_at_price: product?.compare_at_price?.toString() || "",
     category_id: product?.category_id || "",
     sizes: product?.sizes?.join(", ") || "",
+    colors: product?.colors?.join(", ") || "",
+    designs: product?.designs?.join(", ") || "",
     stock: product?.stock?.toString() || "0",
     is_featured: product?.is_featured || false,
   });
@@ -171,7 +173,9 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
         price: parseFloat(form.price),
         compare_at_price: form.compare_at_price ? parseFloat(form.compare_at_price) : null,
         category_id: form.category_id || null,
-        sizes: form.sizes ? form.sizes.split(",").map(s => s.trim()) : [],
+        sizes: form.sizes ? form.sizes.split(",").map(s => s.trim()).filter(Boolean) : [],
+        colors: form.colors ? form.colors.split(",").map(s => s.trim()).filter(Boolean) : [],
+        designs: form.designs ? form.designs.split(",").map(s => s.trim()).filter(Boolean) : [],
         stock: parseInt(form.stock) || 0,
         is_featured: form.is_featured,
         images,
@@ -217,6 +221,8 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
         </Select>
       </div>
       <div><Label>Sizes (comma-separated)</Label><Input value={form.sizes} onChange={e => setForm(f => ({ ...f, sizes: e.target.value }))} placeholder="S, M, L, XL" /></div>
+      <div><Label>Colors (comma-separated)</Label><Input value={form.colors} onChange={e => setForm(f => ({ ...f, colors: e.target.value }))} placeholder="Red, Blue, Black" /></div>
+      <div><Label>Designs (comma-separated)</Label><Input value={form.designs} onChange={e => setForm(f => ({ ...f, designs: e.target.value }))} placeholder="Floral, Plain, Striped" /></div>
       <div><Label>Stock</Label><Input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} /></div>
 
       {/* Image upload */}
