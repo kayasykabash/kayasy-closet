@@ -84,7 +84,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {cards.map(c => (
           <div key={c.label} className="bg-card border rounded-xl p-4">
             <div className="flex items-center gap-3 mb-2">
