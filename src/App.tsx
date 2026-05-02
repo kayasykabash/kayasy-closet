@@ -20,6 +20,11 @@ import AdminProductsPage from "./pages/AdminProductsPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminOrdersPage from "./pages/AdminOrdersPage";
 import AdminSettingsPage from "./pages/AdminSettingsPage";
+import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
+import AdminDeliveryZonesPage from "./pages/AdminDeliveryZonesPage";
+import AdminStockHistoryPage from "./pages/AdminStockHistoryPage";
+import AddressesPage from "./pages/Addresses";
+import DashboardPage from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
