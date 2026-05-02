@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, ShoppingCart, Users, BarChart3, AlertTriangle } from "lucide-react";
+import { Package, ShoppingCart, Users, BarChart3, AlertTriangle, TrendingUp, Clock } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function AdminDashboard() {
   const { data: stats } = useQuery({
