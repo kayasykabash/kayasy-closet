@@ -1,28 +1,47 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Package, ShoppingCart, Users, BarChart3, AlertTriangle } from "lucide-react";
+import { Package, ShoppingCart, Users, BarChart3, AlertTriangle, TrendingUp, Clock } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function AdminDashboard() {
-  const { data: stats } = useQuery({
+  const { data: stats, refetch } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      const [products, orders, profiles] = await Promise.all([
-        supabase.from("products").select("id", { count: "exact", head: true }),
-        supabase.from("orders").select("id, total, created_at, status, payment_status"),
+      const [products, orders, profiles, items] = await Promise.all([
+        supabase.from("products").select("id, cost_price, price"),
+        supabase.from("orders").select("id, total, created_at, status, payment_status, is_overdue"),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
+        supabase.from("order_items").select("product_id, quantity, price"),
       ]);
       const paidOrders = orders.data?.filter(o => o.payment_status === "paid") || [];
       const totalRevenue = paidOrders.reduce((s, o) => s + Number(o.total), 0);
+      const costMap = new Map((products.data || []).map(p => [p.id, Number(p.cost_price || 0)]));
+      let totalCost = 0;
+      (items.data || []).forEach((it: any) => {
+        totalCost += (costMap.get(it.product_id) || 0) * it.quantity;
+      });
+      const overdueCount = (orders.data || []).filter(o => o.is_overdue && o.payment_status !== "paid").length;
       return {
-        products: products.count ?? 0,
+        products: products.data?.length ?? 0,
         orders: orders.data?.length ?? 0,
         users: profiles.count ?? 0,
         revenue: totalRevenue,
+        cost: totalCost,
+        profit: totalRevenue - totalCost,
+        overdue: overdueCount,
         recentOrders: orders.data?.slice(0, 5) || [],
       };
     },
   });
+
+  const handleMarkOverdue = async () => {
+    const { data, error } = await supabase.rpc("mark_overdue_orders");
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Marked ${data ?? 0} order(s) as overdue`);
+    refetch();
+  };
 
   const { data: lowStock = [] } = useQuery({
     queryKey: ["admin-low-stock"],
@@ -51,14 +70,21 @@ export default function AdminDashboard() {
     { label: "Orders", value: stats?.orders || 0, icon: ShoppingCart, color: "text-green-500", bg: "bg-green-500/10" },
     { label: "Customers", value: stats?.users || 0, icon: Users, color: "text-purple-500", bg: "bg-purple-500/10" },
     { label: "Revenue", value: `₦${(stats?.revenue || 0).toLocaleString()}`, icon: BarChart3, color: "text-primary", bg: "bg-primary/10" },
+    { label: "Net Profit", value: `₦${(stats?.profit || 0).toLocaleString()}`, icon: TrendingUp, color: "text-amber-500", bg: "bg-amber-500/10" },
+    { label: "Overdue Orders", value: stats?.overdue || 0, icon: Clock, color: "text-destructive", bg: "bg-destructive/10" },
   ];
 
   return (
     <div className="space-y-6">
-      <h1 className="font-heading text-xl font-bold">Dashboard Overview</h1>
+      <div className="flex justify-between items-center flex-wrap gap-2">
+        <h1 className="font-heading text-xl font-bold">Dashboard Overview</h1>
+        <Button size="sm" variant="outline" onClick={handleMarkOverdue}>
+          <Clock className="h-3.5 w-3.5 mr-1" /> Refresh Overdue
+        </Button>
+      </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {cards.map(c => (
           <div key={c.label} className="bg-card border rounded-xl p-4">
             <div className="flex items-center gap-3 mb-2">

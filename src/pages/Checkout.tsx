@@ -9,8 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useDeliveryZones } from "@/hooks/useDeliveryZones";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Banknote, Truck, Store, CreditCard } from "lucide-react";
+import { Banknote, Truck, Store, CreditCard, MapPin } from "lucide-react";
 
 type PaymentMethod = "bank_transfer" | "cod" | "pickup" | "credit";
 
@@ -21,6 +24,8 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer");
+  const [zoneId, setZoneId] = useState<string>("");
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [form, setForm] = useState({
     address: "",
     city: "",
@@ -29,12 +34,34 @@ const CheckoutPage = () => {
     notes: "",
   });
 
+  const { data: zones = [] } = useDeliveryZones();
+  const { data: addresses = [] } = useQuery({
+    queryKey: ["checkout-addresses", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("user_addresses").select("*").order("is_default", { ascending: false });
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle().then(({ data }) => setProfile(data));
   }, [user]);
 
-  const deliveryFee = paymentMethod === "pickup" ? 0 : (total >= 50000 ? 0 : 2500);
+  // Auto-fill default address
+  useEffect(() => {
+    if (addresses.length && !selectedAddressId) {
+      const def = addresses.find((a: any) => a.is_default) || addresses[0];
+      if (def) {
+        setSelectedAddressId(def.id);
+        setForm(f => ({ ...f, address: def.address, city: def.city, state: def.state, phone: def.phone }));
+      }
+    }
+  }, [addresses, selectedAddressId]);
+
+  const selectedZone = zones.find((z: any) => z.id === zoneId);
+  const deliveryFee = paymentMethod === "pickup" ? 0 : (selectedZone ? Number(selectedZone.fee) : (total >= 50000 ? 0 : 2500));
   const grandTotal = total + deliveryFee;
 
   const creditAvailable = profile?.credit_approved
@@ -63,6 +90,8 @@ const CheckoutPage = () => {
         delivery_city: form.city,
         delivery_state: form.state,
         delivery_phone: form.phone,
+        delivery_zone_id: paymentMethod === "pickup" ? null : (zoneId || null),
+        delivery_fee: deliveryFee,
         notes: form.notes,
         payment_method: paymentMethod,
       };
@@ -137,6 +166,31 @@ const CheckoutPage = () => {
         <h1 className="font-heading text-2xl font-bold mb-6">Checkout</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Saved addresses */}
+          {addresses.length > 0 && paymentMethod !== "pickup" && (
+            <div className="border rounded-lg p-4 bg-card">
+              <h2 className="font-heading font-semibold mb-3 text-sm flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> Saved Addresses</h2>
+              <div className="grid sm:grid-cols-2 gap-2">
+                {addresses.map((a: any) => (
+                  <button
+                    type="button"
+                    key={a.id}
+                    onClick={() => {
+                      setSelectedAddressId(a.id);
+                      setForm(f => ({ ...f, address: a.address, city: a.city, state: a.state, phone: a.phone }));
+                    }}
+                    className={`text-left p-3 rounded-lg border text-xs transition-colors ${
+                      selectedAddressId === a.id ? "border-primary bg-primary/5" : "hover:bg-muted/50"
+                    }`}
+                  >
+                    <p className="font-semibold">{a.label || "Address"} {a.is_default && <span className="text-primary">★</span>}</p>
+                    <p className="text-muted-foreground line-clamp-2">{a.address}, {a.city}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Delivery */}
           <div className="border rounded-lg p-6 bg-card space-y-4">
             <h2 className="font-heading font-semibold">Delivery Details</h2>
@@ -160,6 +214,22 @@ const CheckoutPage = () => {
                 <Input id="state" value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} required={paymentMethod !== "pickup"} />
               </div>
             </div>
+            {paymentMethod !== "pickup" && (
+              <div>
+                <Label>Delivery Zone</Label>
+                <Select value={zoneId} onValueChange={setZoneId}>
+                  <SelectTrigger><SelectValue placeholder="Select your delivery zone" /></SelectTrigger>
+                  <SelectContent>
+                    {zones.map((z: any) => (
+                      <SelectItem key={z.id} value={z.id}>
+                        {z.name} — ₦{Number(z.fee).toLocaleString()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">Picking a zone calculates exact delivery fee</p>
+              </div>
+            )}
             <div>
               <Label htmlFor="notes">Order Notes (optional)</Label>
               <Textarea id="notes" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any special instructions" />

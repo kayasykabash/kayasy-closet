@@ -94,7 +94,9 @@ export function Navbar() {
                 <button className="p-2"><User className="h-5 w-5" /></button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => navigate("/dashboard")}>My Dashboard</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/orders")}>My Orders</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/addresses")}>My Addresses</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/wishlist")}>Wishlist</DropdownMenuItem>
                 {isAdmin && (
                   <>
