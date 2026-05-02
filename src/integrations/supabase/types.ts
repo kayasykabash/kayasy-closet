@@ -123,6 +123,36 @@ export type Database = {
           },
         ]
       }
+      delivery_zones: {
+        Row: {
+          city: string | null
+          created_at: string
+          fee: number
+          id: string
+          is_active: boolean
+          name: string
+          state: string | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          fee?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          state?: string | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          fee?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          state?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           color: string | null
@@ -183,10 +213,13 @@ export type Database = {
           created_at: string
           delivery_address: string
           delivery_city: string | null
+          delivery_fee: number
           delivery_phone: string | null
           delivery_state: string | null
+          delivery_zone_id: string | null
           due_date: string | null
           id: string
+          is_overdue: boolean
           notes: string | null
           payment_expires_at: string | null
           payment_method: string
@@ -203,10 +236,13 @@ export type Database = {
           created_at?: string
           delivery_address: string
           delivery_city?: string | null
+          delivery_fee?: number
           delivery_phone?: string | null
           delivery_state?: string | null
+          delivery_zone_id?: string | null
           due_date?: string | null
           id?: string
+          is_overdue?: boolean
           notes?: string | null
           payment_expires_at?: string | null
           payment_method?: string
@@ -223,10 +259,13 @@ export type Database = {
           created_at?: string
           delivery_address?: string
           delivery_city?: string | null
+          delivery_fee?: number
           delivery_phone?: string | null
           delivery_state?: string | null
+          delivery_zone_id?: string | null
           due_date?: string | null
           id?: string
+          is_overdue?: boolean
           notes?: string | null
           payment_expires_at?: string | null
           payment_method?: string
@@ -245,6 +284,7 @@ export type Database = {
           category_id: string | null
           colors: string[] | null
           compare_at_price: number | null
+          cost_price: number
           created_at: string
           description: string | null
           designs: string[] | null
@@ -265,6 +305,7 @@ export type Database = {
           category_id?: string | null
           colors?: string[] | null
           compare_at_price?: number | null
+          cost_price?: number
           created_at?: string
           description?: string | null
           designs?: string[] | null
@@ -285,6 +326,7 @@ export type Database = {
           category_id?: string | null
           colors?: string[] | null
           compare_at_price?: number | null
+          cost_price?: number
           created_at?: string
           description?: string | null
           designs?: string[] | null
@@ -321,6 +363,7 @@ export type Database = {
           credit_approved: boolean
           credit_balance: number
           credit_limit: number
+          credit_score: number
           full_name: string | null
           id: string
           is_blocked: boolean
@@ -338,6 +381,7 @@ export type Database = {
           credit_approved?: boolean
           credit_balance?: number
           credit_limit?: number
+          credit_score?: number
           full_name?: string | null
           id?: string
           is_blocked?: boolean
@@ -355,6 +399,7 @@ export type Database = {
           credit_approved?: boolean
           credit_balance?: number
           credit_limit?: number
+          credit_score?: number
           full_name?: string | null
           id?: string
           is_blocked?: boolean
@@ -395,6 +440,42 @@ export type Database = {
           is_active?: boolean
           usage_count?: number
           usage_limit?: number | null
+        }
+        Relationships: []
+      }
+      return_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          id: string
+          order_id: string
+          reason: string
+          refund_method: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          order_id: string
+          reason: string
+          refund_method?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string
+          reason?: string
+          refund_method?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -451,6 +532,81 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      stock_movements: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          new_stock: number | null
+          performed_by: string | null
+          product_id: string
+          quantity_change: number
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          new_stock?: number | null
+          performed_by?: string | null
+          product_id: string
+          quantity_change?: number
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          new_stock?: number | null
+          performed_by?: string | null
+          product_id?: string
+          quantity_change?: number
+          reason?: string | null
+        }
+        Relationships: []
+      }
+      user_addresses: {
+        Row: {
+          address: string
+          city: string
+          created_at: string
+          full_name: string
+          id: string
+          is_default: boolean
+          label: string | null
+          phone: string
+          state: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          city: string
+          created_at?: string
+          full_name: string
+          id?: string
+          is_default?: boolean
+          label?: string | null
+          phone: string
+          state: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_default?: boolean
+          label?: string | null
+          phone?: string
+          state?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -513,6 +669,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      mark_overdue_orders: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user"
