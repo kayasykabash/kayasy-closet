@@ -24,6 +24,8 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer");
+  const [zoneId, setZoneId] = useState<string>("");
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [form, setForm] = useState({
     address: "",
     city: "",
@@ -32,12 +34,34 @@ const CheckoutPage = () => {
     notes: "",
   });
 
+  const { data: zones = [] } = useDeliveryZones();
+  const { data: addresses = [] } = useQuery({
+    queryKey: ["checkout-addresses", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("user_addresses").select("*").order("is_default", { ascending: false });
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle().then(({ data }) => setProfile(data));
   }, [user]);
 
-  const deliveryFee = paymentMethod === "pickup" ? 0 : (total >= 50000 ? 0 : 2500);
+  // Auto-fill default address
+  useEffect(() => {
+    if (addresses.length && !selectedAddressId) {
+      const def = addresses.find((a: any) => a.is_default) || addresses[0];
+      if (def) {
+        setSelectedAddressId(def.id);
+        setForm(f => ({ ...f, address: def.address, city: def.city, state: def.state, phone: def.phone }));
+      }
+    }
+  }, [addresses, selectedAddressId]);
+
+  const selectedZone = zones.find((z: any) => z.id === zoneId);
+  const deliveryFee = paymentMethod === "pickup" ? 0 : (selectedZone ? Number(selectedZone.fee) : (total >= 50000 ? 0 : 2500));
   const grandTotal = total + deliveryFee;
 
   const creditAvailable = profile?.credit_approved
