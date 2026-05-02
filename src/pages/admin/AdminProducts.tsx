@@ -210,9 +210,10 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
       <div><Label>Slug</Label><Input value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} placeholder="auto-generated" /></div>
       <div><Label>Description</Label><Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} /></div>
       <div className="grid grid-cols-2 gap-3">
-        <div><Label>Price (₦)</Label><Input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} required /></div>
-        <div><Label>Compare Price</Label><Input type="number" value={form.compare_at_price} onChange={e => setForm(f => ({ ...f, compare_at_price: e.target.value }))} /></div>
+        <div><Label>Selling Price (₦)</Label><Input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} required /></div>
+        <div><Label>Cost Price (₦)</Label><Input type="number" value={form.cost_price} onChange={e => setForm(f => ({ ...f, cost_price: e.target.value }))} placeholder="For profit tracking" /></div>
       </div>
+      <div><Label>Compare-at Price (optional)</Label><Input type="number" value={form.compare_at_price} onChange={e => setForm(f => ({ ...f, compare_at_price: e.target.value }))} /></div>
       <div>
         <Label>Category</Label>
         <Select value={form.category_id} onValueChange={v => setForm(f => ({ ...f, category_id: v }))}>
