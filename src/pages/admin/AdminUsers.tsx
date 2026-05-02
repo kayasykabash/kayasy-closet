@@ -119,9 +119,15 @@ export default function AdminUsers() {
                     </td>
                     <td className="p-3 hidden md:table-cell text-xs">
                       {u.credit_approved ? (
-                        <div>
-                          <span className="text-green-600 font-medium">₦{Number(u.credit_balance || 0).toLocaleString()}</span>
-                          <span className="text-muted-foreground"> / ₦{Number(u.credit_limit || 0).toLocaleString()}</span>
+                        <div className="space-y-0.5">
+                          <div>
+                            <span className="text-green-600 font-medium">₦{Number(u.credit_balance || 0).toLocaleString()}</span>
+                            <span className="text-muted-foreground"> / ₦{Number(u.credit_limit || 0).toLocaleString()}</span>
+                          </div>
+                          <div className={`text-[10px] font-bold ${
+                            (u.credit_score ?? 100) >= 75 ? "text-green-600" :
+                            (u.credit_score ?? 100) >= 50 ? "text-amber-500" : "text-destructive"
+                          }`}>Score: {u.credit_score ?? 100}/100</div>
                         </div>
                       ) : (
                         <span className="text-muted-foreground">—</span>
