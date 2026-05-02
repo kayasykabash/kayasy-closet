@@ -98,14 +98,27 @@ const OrdersPage = () => {
           <div className="space-y-4">
             {orders.map(order => {
               const ps = paymentStatusConfig[order.payment_status] || paymentStatusConfig.unpaid;
+              const handleInvoice = async () => {
+                try {
+                  const { data: profile } = await supabase.from("profiles").select("full_name, phone").eq("user_id", user.id).maybeSingle();
+                  generateInvoicePDF(order as any, (order as any).order_items || [], { full_name: profile?.full_name, phone: profile?.phone, email: user.email });
+                } catch (err: any) {
+                  toast.error("Could not generate invoice");
+                }
+              };
               return (
                 <div key={order.id} className="border rounded-lg p-4 bg-card">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                     <div>
                       <p className="text-xs text-muted-foreground">Order #{order.id.slice(0, 8)}</p>
                       <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {order.is_overdue && order.payment_status !== "paid" && (
+                        <Badge className="bg-destructive/10 text-destructive flex items-center gap-1 text-[10px]">
+                          <AlertTriangle className="h-3 w-3" /> Overdue
+                        </Badge>
+                      )}
                       <Badge className={ps.color + " flex items-center gap-1 text-[10px]"}>
                         {ps.icon} {ps.label}
                       </Badge>
@@ -143,6 +156,10 @@ const OrdersPage = () => {
                   </div>
 
                   {order.status !== "cancelled" && <OrderTracker status={order.status} />}
+
+                  <Button variant="outline" size="sm" className="mt-3 w-full" onClick={handleInvoice}>
+                    <FileText className="h-3.5 w-3.5 mr-1" /> Download Invoice
+                  </Button>
                 </div>
               );
             })}
