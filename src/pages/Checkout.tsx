@@ -166,6 +166,31 @@ const CheckoutPage = () => {
         <h1 className="font-heading text-2xl font-bold mb-6">Checkout</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Saved addresses */}
+          {addresses.length > 0 && paymentMethod !== "pickup" && (
+            <div className="border rounded-lg p-4 bg-card">
+              <h2 className="font-heading font-semibold mb-3 text-sm flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> Saved Addresses</h2>
+              <div className="grid sm:grid-cols-2 gap-2">
+                {addresses.map((a: any) => (
+                  <button
+                    type="button"
+                    key={a.id}
+                    onClick={() => {
+                      setSelectedAddressId(a.id);
+                      setForm(f => ({ ...f, address: a.address, city: a.city, state: a.state, phone: a.phone }));
+                    }}
+                    className={`text-left p-3 rounded-lg border text-xs transition-colors ${
+                      selectedAddressId === a.id ? "border-primary bg-primary/5" : "hover:bg-muted/50"
+                    }`}
+                  >
+                    <p className="font-semibold">{a.label || "Address"} {a.is_default && <span className="text-primary">★</span>}</p>
+                    <p className="text-muted-foreground line-clamp-2">{a.address}, {a.city}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Delivery */}
           <div className="border rounded-lg p-6 bg-card space-y-4">
             <h2 className="font-heading font-semibold">Delivery Details</h2>
@@ -189,6 +214,22 @@ const CheckoutPage = () => {
                 <Input id="state" value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} required={paymentMethod !== "pickup"} />
               </div>
             </div>
+            {paymentMethod !== "pickup" && (
+              <div>
+                <Label>Delivery Zone</Label>
+                <Select value={zoneId} onValueChange={setZoneId}>
+                  <SelectTrigger><SelectValue placeholder="Select your delivery zone" /></SelectTrigger>
+                  <SelectContent>
+                    {zones.map((z: any) => (
+                      <SelectItem key={z.id} value={z.id}>
+                        {z.name} — ₦{Number(z.fee).toLocaleString()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">Picking a zone calculates exact delivery fee</p>
+              </div>
+            )}
             <div>
               <Label htmlFor="notes">Order Notes (optional)</Label>
               <Textarea id="notes" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any special instructions" />
