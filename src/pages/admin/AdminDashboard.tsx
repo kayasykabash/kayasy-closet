@@ -6,25 +6,42 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export default function AdminDashboard() {
-  const { data: stats } = useQuery({
+  const { data: stats, refetch } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      const [products, orders, profiles] = await Promise.all([
-        supabase.from("products").select("id", { count: "exact", head: true }),
-        supabase.from("orders").select("id, total, created_at, status, payment_status"),
+      const [products, orders, profiles, items] = await Promise.all([
+        supabase.from("products").select("id, cost_price, price"),
+        supabase.from("orders").select("id, total, created_at, status, payment_status, is_overdue"),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
+        supabase.from("order_items").select("product_id, quantity, price"),
       ]);
       const paidOrders = orders.data?.filter(o => o.payment_status === "paid") || [];
       const totalRevenue = paidOrders.reduce((s, o) => s + Number(o.total), 0);
+      const costMap = new Map((products.data || []).map(p => [p.id, Number(p.cost_price || 0)]));
+      let totalCost = 0;
+      (items.data || []).forEach((it: any) => {
+        totalCost += (costMap.get(it.product_id) || 0) * it.quantity;
+      });
+      const overdueCount = (orders.data || []).filter(o => o.is_overdue && o.payment_status !== "paid").length;
       return {
-        products: products.count ?? 0,
+        products: products.data?.length ?? 0,
         orders: orders.data?.length ?? 0,
         users: profiles.count ?? 0,
         revenue: totalRevenue,
+        cost: totalCost,
+        profit: totalRevenue - totalCost,
+        overdue: overdueCount,
         recentOrders: orders.data?.slice(0, 5) || [],
       };
     },
   });
+
+  const handleMarkOverdue = async () => {
+    const { data, error } = await supabase.rpc("mark_overdue_orders");
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Marked ${data ?? 0} order(s) as overdue`);
+    refetch();
+  };
 
   const { data: lowStock = [] } = useQuery({
     queryKey: ["admin-low-stock"],
