@@ -142,6 +142,7 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
     colors: product?.colors?.join(", ") || "",
     designs: product?.designs?.join(", ") || "",
     stock: product?.stock?.toString() || "0",
+    cost_price: product?.cost_price?.toString() || "0",
     is_featured: product?.is_featured || false,
   });
   const [imageFiles, setImageFiles] = useState<File[]>([]);
