@@ -90,6 +90,8 @@ const CheckoutPage = () => {
         delivery_city: form.city,
         delivery_state: form.state,
         delivery_phone: form.phone,
+        delivery_zone_id: paymentMethod === "pickup" ? null : (zoneId || null),
+        delivery_fee: deliveryFee,
         notes: form.notes,
         payment_method: paymentMethod,
       };
