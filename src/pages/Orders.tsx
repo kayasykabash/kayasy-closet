@@ -4,7 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Package, CreditCard, Truck, CheckCircle2, XCircle, Clock, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Package, CreditCard, Truck, CheckCircle2, XCircle, Clock, AlertTriangle, FileText } from "lucide-react";
+import { generateInvoicePDF } from "@/lib/invoice";
+import { toast } from "sonner";
 
 const statusColor: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
