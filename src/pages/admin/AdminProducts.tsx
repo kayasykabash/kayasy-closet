@@ -178,6 +178,7 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
         colors: form.colors ? form.colors.split(",").map(s => s.trim()).filter(Boolean) : [],
         designs: form.designs ? form.designs.split(",").map(s => s.trim()).filter(Boolean) : [],
         stock: parseInt(form.stock) || 0,
+        cost_price: parseFloat(form.cost_price) || 0,
         is_featured: form.is_featured,
         images,
       };
