@@ -57,6 +57,24 @@ export default function AdminOrders() {
     },
   });
 
+  const deleteOrderMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error: e1 } = await supabase.from("order_items").delete().eq("order_id", id);
+      if (e1) throw e1;
+      const { error: e2 } = await supabase.from("return_requests").delete().eq("order_id", id);
+      if (e2) throw e2;
+      const { error } = await supabase.from("orders").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+      toast.success("Order deleted");
+      setDeleteOrder(null);
+      setSelectedOrder(null);
+    },
+    onError: (e: any) => toast.error(e.message || "Failed to delete order"),
+  });
+
   const filtered = orders.filter((o: any) => {
     const matchSearch = o.id.includes(search) || o.delivery_address?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = filterStatus === "all" || o.status === filterStatus || o.payment_status === filterStatus;
