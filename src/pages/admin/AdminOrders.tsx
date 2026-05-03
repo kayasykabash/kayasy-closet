@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Search, Eye, Download, CheckCircle2, XCircle, Image } from "lucide-react";
+import { Search, Eye, Download, CheckCircle2, XCircle, Image, FileText } from "lucide-react";
+import { generateInvoicePDF } from "@/lib/invoice";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
