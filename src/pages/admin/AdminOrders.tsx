@@ -195,6 +195,9 @@ export default function AdminOrders() {
                       <Button variant="ghost" size="sm" onClick={() => setSelectedOrder(o)}>
                         <Eye className="h-3.5 w-3.5" />
                       </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setDeleteOrder(o)} title="Delete order" className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </td>
                 </tr>
