@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Search, Eye, Download, CheckCircle2, XCircle, Image } from "lucide-react";
+import { Search, Eye, Download, CheckCircle2, XCircle, Image, FileText } from "lucide-react";
+import { generateInvoicePDF } from "@/lib/invoice";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
@@ -82,6 +83,24 @@ export default function AdminOrders() {
 
   const pendingPayments = orders.filter((o: any) => o.payment_status === "pending_verification").length;
 
+  const downloadInvoice = async (order: any) => {
+    try {
+      let items = order.order_items;
+      if (!items) {
+        const { data } = await supabase.from("order_items").select("*").eq("order_id", order.id);
+        items = data || [];
+      }
+      let customer: any = {};
+      if (order.user_id) {
+        const { data: profile } = await supabase.from("profiles").select("full_name, phone").eq("user_id", order.user_id).maybeSingle();
+        if (profile) customer = profile;
+      }
+      generateInvoicePDF(order, items, customer);
+    } catch (e: any) {
+      toast.error("Failed to generate invoice");
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -146,9 +165,14 @@ export default function AdminOrders() {
                   </td>
                   <td className="p-3 text-right font-medium">₦{Number(o.total).toLocaleString()}</td>
                   <td className="p-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedOrder(o)}>
-                      <Eye className="h-3.5 w-3.5" />
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => downloadInvoice(o)} title="Download invoice">
+                        <FileText className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedOrder(o)}>
+                        <Eye className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -170,6 +194,10 @@ export default function AdminOrders() {
                 <div><span className="text-muted-foreground">Date:</span><br />{new Date(selectedOrder.created_at).toLocaleString()}</div>
                 <div><span className="text-muted-foreground">Status:</span><br /><span className="font-medium capitalize">{selectedOrder.status}</span></div>
               </div>
+
+              <Button variant="outline" size="sm" className="w-full" onClick={() => downloadInvoice(selectedOrder)}>
+                <FileText className="h-3.5 w-3.5 mr-1" /> Download Invoice
+              </Button>
 
               {/* Payment verification section */}
               <div className="border rounded-lg p-4 space-y-3">
