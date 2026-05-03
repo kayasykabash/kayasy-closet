@@ -165,9 +165,14 @@ export default function AdminOrders() {
                   </td>
                   <td className="p-3 text-right font-medium">₦{Number(o.total).toLocaleString()}</td>
                   <td className="p-3 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedOrder(o)}>
-                      <Eye className="h-3.5 w-3.5" />
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => downloadInvoice(o)} title="Download invoice">
+                        <FileText className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedOrder(o)}>
+                        <Eye className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
