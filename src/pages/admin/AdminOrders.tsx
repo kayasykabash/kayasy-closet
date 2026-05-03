@@ -286,10 +286,34 @@ export default function AdminOrders() {
                 <p>{selectedOrder.delivery_city}, {selectedOrder.delivery_state}</p>
                 {selectedOrder.delivery_phone && <p>Phone: {selectedOrder.delivery_phone}</p>}
               </div>
+
+              <Button variant="destructive" size="sm" className="w-full" onClick={() => setDeleteOrder(selectedOrder)}>
+                <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete Order
+              </Button>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteOrder} onOpenChange={open => !open && setDeleteOrder(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete order?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove order #{deleteOrder?.id?.slice(0, 8)} and its items. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteOrder && deleteOrderMutation.mutate(deleteOrder.id)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
