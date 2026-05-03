@@ -83,6 +83,24 @@ export default function AdminOrders() {
 
   const pendingPayments = orders.filter((o: any) => o.payment_status === "pending_verification").length;
 
+  const downloadInvoice = async (order: any) => {
+    try {
+      let items = order.order_items;
+      if (!items) {
+        const { data } = await supabase.from("order_items").select("*").eq("order_id", order.id);
+        items = data || [];
+      }
+      let customer: any = {};
+      if (order.user_id) {
+        const { data: profile } = await supabase.from("profiles").select("full_name, phone").eq("user_id", order.user_id).maybeSingle();
+        if (profile) customer = profile;
+      }
+      generateInvoicePDF(order, items, customer);
+    } catch (e: any) {
+      toast.error("Failed to generate invoice");
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
