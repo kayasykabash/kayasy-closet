@@ -157,9 +157,16 @@ const OrdersPage = () => {
 
                   {order.status !== "cancelled" && <OrderTracker status={order.status} />}
 
-                  <Button variant="outline" size="sm" className="mt-3 w-full" onClick={handleInvoice}>
-                    <FileText className="h-3.5 w-3.5 mr-1" /> Download Invoice
-                  </Button>
+                  <div className="flex gap-2 mt-3">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={handleInvoice}>
+                      <FileText className="h-3.5 w-3.5 mr-1" /> Invoice
+                    </Button>
+                    {(order.status === "delivered" || order.status === "shipped") && (
+                      <Link to={`/returns?order=${order.id}`} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full">Request Return</Button>
+                      </Link>
+                    )}
+                  </div>
                 </div>
               );
             })}
