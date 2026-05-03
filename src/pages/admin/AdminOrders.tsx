@@ -195,6 +195,10 @@ export default function AdminOrders() {
                 <div><span className="text-muted-foreground">Status:</span><br /><span className="font-medium capitalize">{selectedOrder.status}</span></div>
               </div>
 
+              <Button variant="outline" size="sm" className="w-full" onClick={() => downloadInvoice(selectedOrder)}>
+                <FileText className="h-3.5 w-3.5 mr-1" /> Download Invoice
+              </Button>
+
               {/* Payment verification section */}
               <div className="border rounded-lg p-4 space-y-3">
                 <h3 className="font-semibold">Payment Verification</h3>
