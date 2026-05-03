@@ -25,6 +25,8 @@ import AdminDeliveryZonesPage from "./pages/AdminDeliveryZonesPage";
 import AdminStockHistoryPage from "./pages/AdminStockHistoryPage";
 import AddressesPage from "./pages/Addresses";
 import DashboardPage from "./pages/Dashboard";
+import ResetPassword from "./pages/ResetPassword";
+import ReturnsPage from "./pages/Returns";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +59,8 @@ const App = () => (
             <Route path="/admin/stock-history" element={<AdminStockHistoryPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/addresses" element={<AddressesPage />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/returns" element={<ReturnsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

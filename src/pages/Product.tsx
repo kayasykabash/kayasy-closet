@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Heart, Minus, Plus, ShoppingCart, Truck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ProductReviews } from "@/components/ProductReviews";
 
 const ProductPage = () => {
   const { slug } = useParams();
@@ -193,6 +194,8 @@ const ProductPage = () => {
             </div>
           </div>
         </div>
+
+        <ProductReviews productId={product.id} />
       </div>
     </Layout>
   );
