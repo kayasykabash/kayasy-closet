@@ -11,7 +11,7 @@ interface Props {
   productId: string;
 }
 
-const StarRow = ({ value, onChange, size = 5 }: { value: number; onChange?: (n: number) => void; size?: number }) => (
+const StarRow = ({ value, onChange }: { value: number; onChange?: (n: number) => void }) => (
   <div className="flex gap-0.5">
     {[1, 2, 3, 4, 5].map(n => (
       <button
@@ -22,7 +22,7 @@ const StarRow = ({ value, onChange, size = 5 }: { value: number; onChange?: (n: 
         className={onChange ? "cursor-pointer" : "cursor-default"}
       >
         <Star
-          className={`h-${size} w-${size} ${n <= value ? "fill-primary text-primary" : "text-muted-foreground"}`}
+          className={`h-4 w-4 ${n <= value ? "fill-primary text-primary" : "text-muted-foreground"}`}
         />
       </button>
     ))}
