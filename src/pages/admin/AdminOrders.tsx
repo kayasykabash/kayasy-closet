@@ -22,6 +22,7 @@ export default function AdminOrders() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [deleteOrder, setDeleteOrder] = useState<any>(null);
 
   const { data: orders = [] } = useQuery({
     queryKey: ["admin-orders"],
