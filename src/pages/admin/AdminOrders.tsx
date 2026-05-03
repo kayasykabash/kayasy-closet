@@ -5,10 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Search, Eye, Download, CheckCircle2, XCircle, Image, FileText } from "lucide-react";
+import { Search, Eye, Download, CheckCircle2, XCircle, Image, FileText, Trash2 } from "lucide-react";
 import { generateInvoicePDF } from "@/lib/invoice";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const statusOptions = ["pending", "processing", "shipped", "delivered", "cancelled"];
 const paymentStatusOptions = ["unpaid", "pending_verification", "paid", "rejected"];
@@ -18,6 +22,7 @@ export default function AdminOrders() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [deleteOrder, setDeleteOrder] = useState<any>(null);
 
   const { data: orders = [] } = useQuery({
     queryKey: ["admin-orders"],
@@ -50,6 +55,24 @@ export default function AdminOrders() {
         supabase.from("orders").select("*, order_items(*)").eq("id", selectedOrder.id).single().then(({ data }) => setSelectedOrder(data));
       }
     },
+  });
+
+  const deleteOrderMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error: e1 } = await supabase.from("order_items").delete().eq("order_id", id);
+      if (e1) throw e1;
+      const { error: e2 } = await supabase.from("return_requests").delete().eq("order_id", id);
+      if (e2) throw e2;
+      const { error } = await supabase.from("orders").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+      toast.success("Order deleted");
+      setDeleteOrder(null);
+      setSelectedOrder(null);
+    },
+    onError: (e: any) => toast.error(e.message || "Failed to delete order"),
   });
 
   const filtered = orders.filter((o: any) => {
@@ -172,6 +195,9 @@ export default function AdminOrders() {
                       <Button variant="ghost" size="sm" onClick={() => setSelectedOrder(o)}>
                         <Eye className="h-3.5 w-3.5" />
                       </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setDeleteOrder(o)} title="Delete order" className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -260,10 +286,34 @@ export default function AdminOrders() {
                 <p>{selectedOrder.delivery_city}, {selectedOrder.delivery_state}</p>
                 {selectedOrder.delivery_phone && <p>Phone: {selectedOrder.delivery_phone}</p>}
               </div>
+
+              <Button variant="destructive" size="sm" className="w-full" onClick={() => setDeleteOrder(selectedOrder)}>
+                <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete Order
+              </Button>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteOrder} onOpenChange={open => !open && setDeleteOrder(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete order?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove order #{deleteOrder?.id?.slice(0, 8)} and its items. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteOrder && deleteOrderMutation.mutate(deleteOrder.id)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
