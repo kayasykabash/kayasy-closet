@@ -5,10 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Search, Eye, Download, CheckCircle2, XCircle, Image, FileText } from "lucide-react";
+import { Search, Eye, Download, CheckCircle2, XCircle, Image, FileText, Trash2 } from "lucide-react";
 import { generateInvoicePDF } from "@/lib/invoice";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const statusOptions = ["pending", "processing", "shipped", "delivered", "cancelled"];
 const paymentStatusOptions = ["unpaid", "pending_verification", "paid", "rejected"];
