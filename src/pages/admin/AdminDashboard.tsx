@@ -9,18 +9,24 @@ export default function AdminDashboard() {
   const { data: stats, refetch } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      const [products, orders, profiles, items] = await Promise.all([
+      const [products, orders, profiles, items, walkins] = await Promise.all([
         supabase.from("products").select("id, cost_price, price"),
         supabase.from("orders").select("id, total, created_at, status, payment_status, is_overdue"),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("order_items").select("product_id, quantity, price"),
+        supabase.from("walkin_sales").select("product_id, quantity, unit_price, total_price"),
       ]);
       const paidOrders = orders.data?.filter(o => o.payment_status === "paid") || [];
-      const totalRevenue = paidOrders.reduce((s, o) => s + Number(o.total), 0);
+      const onlineRevenue = paidOrders.reduce((s, o) => s + Number(o.total), 0);
+      const walkinRevenue = (walkins.data || []).reduce((s, w: any) => s + Number(w.total_price), 0);
+      const totalRevenue = onlineRevenue + walkinRevenue;
       const costMap = new Map((products.data || []).map(p => [p.id, Number(p.cost_price || 0)]));
       let totalCost = 0;
       (items.data || []).forEach((it: any) => {
         totalCost += (costMap.get(it.product_id) || 0) * it.quantity;
+      });
+      (walkins.data || []).forEach((w: any) => {
+        totalCost += (costMap.get(w.product_id) || 0) * w.quantity;
       });
       const overdueCount = (orders.data || []).filter(o => o.is_overdue && o.payment_status !== "paid").length;
       return {
@@ -28,6 +34,8 @@ export default function AdminDashboard() {
         orders: orders.data?.length ?? 0,
         users: profiles.count ?? 0,
         revenue: totalRevenue,
+        onlineRevenue,
+        walkinRevenue,
         cost: totalCost,
         profit: totalRevenue - totalCost,
         overdue: overdueCount,

@@ -7,28 +7,40 @@ export default function AdminAnalytics() {
   const { data: pl } = useQuery({
     queryKey: ["admin-pl"],
     queryFn: async () => {
-      const [{ data: items }, { data: products }] = await Promise.all([
+      const [{ data: items }, { data: products }, { data: walkins }] = await Promise.all([
         supabase.from("order_items").select("product_id, quantity, price"),
         supabase.from("products").select("id, name, cost_price, price"),
+        supabase.from("walkin_sales").select("product_id, quantity, unit_price, total_price"),
       ]);
       const costMap = new Map((products || []).map(p => [p.id, Number(p.cost_price || 0)]));
-      let revenue = 0, cost = 0;
+      let revenue = 0, cost = 0, walkinRevenue = 0;
       const productProfit: Record<string, { name: string; profit: number; sold: number }> = {};
-      (items || []).forEach((it: any) => {
-        const c = costMap.get(it.product_id) || 0;
-        const r = Number(it.price) * it.quantity;
-        const co = c * it.quantity;
-        revenue += r;
-        cost += co;
-        const prod = products?.find(p => p.id === it.product_id);
+      const accumulate = (productId: string, qty: number, lineRevenue: number) => {
+        const c = (costMap.get(productId) || 0) * qty;
+        revenue += lineRevenue;
+        cost += c;
+        const prod = products?.find(p => p.id === productId);
         if (prod) {
-          if (!productProfit[it.product_id]) productProfit[it.product_id] = { name: prod.name, profit: 0, sold: 0 };
-          productProfit[it.product_id].profit += r - co;
-          productProfit[it.product_id].sold += it.quantity;
+          if (!productProfit[productId]) productProfit[productId] = { name: prod.name, profit: 0, sold: 0 };
+          productProfit[productId].profit += lineRevenue - c;
+          productProfit[productId].sold += qty;
         }
+      };
+      (items || []).forEach((it: any) => accumulate(it.product_id, it.quantity, Number(it.price) * it.quantity));
+      (walkins || []).forEach((w: any) => {
+        walkinRevenue += Number(w.total_price);
+        accumulate(w.product_id, w.quantity, Number(w.total_price));
       });
       const top = Object.values(productProfit).sort((a, b) => b.profit - a.profit).slice(0, 5);
-      return { revenue, cost, profit: revenue - cost, margin: revenue > 0 ? ((revenue - cost) / revenue) * 100 : 0, topProducts: top };
+      return {
+        revenue,
+        cost,
+        profit: revenue - cost,
+        margin: revenue > 0 ? ((revenue - cost) / revenue) * 100 : 0,
+        topProducts: top,
+        walkinRevenue,
+        onlineRevenue: revenue - walkinRevenue,
+      };
     },
   });
 
