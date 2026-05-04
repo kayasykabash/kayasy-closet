@@ -77,7 +77,8 @@ export default function AdminDashboard() {
     { label: "Products", value: stats?.products || 0, icon: Package, color: "text-blue-500", bg: "bg-blue-500/10" },
     { label: "Orders", value: stats?.orders || 0, icon: ShoppingCart, color: "text-green-500", bg: "bg-green-500/10" },
     { label: "Customers", value: stats?.users || 0, icon: Users, color: "text-purple-500", bg: "bg-purple-500/10" },
-    { label: "Revenue", value: `₦${(stats?.revenue || 0).toLocaleString()}`, icon: BarChart3, color: "text-primary", bg: "bg-primary/10" },
+    { label: "Revenue (Total)", value: `₦${(stats?.revenue || 0).toLocaleString()}`, icon: BarChart3, color: "text-primary", bg: "bg-primary/10" },
+    { label: "Walk-in Revenue", value: `₦${(stats?.walkinRevenue || 0).toLocaleString()}`, icon: ShoppingCart, color: "text-amber-500", bg: "bg-amber-500/10" },
     { label: "Net Profit", value: `₦${(stats?.profit || 0).toLocaleString()}`, icon: TrendingUp, color: "text-amber-500", bg: "bg-amber-500/10" },
     { label: "Overdue Orders", value: stats?.overdue || 0, icon: Clock, color: "text-destructive", bg: "bg-destructive/10" },
   ];
