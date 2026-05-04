@@ -91,6 +91,7 @@ export default function AdminAnalytics() {
         </div>
       </div>
 
+      <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-card border rounded-xl p-4">
           <h3 className="font-heading font-semibold text-sm mb-4 flex items-center gap-2">
             <Package className="h-4 w-4 text-primary" /> Top Profitable Products
