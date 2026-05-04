@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Package, Users, ShoppingCart, Settings,
-  Menu, X, LogOut, Bell, ChevronDown, MapPin, History, BarChart3,
+  Menu, X, LogOut, Bell, ChevronDown, MapPin, History, BarChart3, ShoppingBag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,7 @@ const navItems = [
   { label: "Analytics", icon: BarChart3, path: "/admin/analytics" },
   { label: "Products", icon: Package, path: "/admin/products" },
   { label: "Orders", icon: ShoppingCart, path: "/admin/orders" },
+  { label: "Walk-in Sales", icon: ShoppingBag, path: "/admin/walkin-sales" },
   { label: "Users", icon: Users, path: "/admin/users" },
   { label: "Delivery Zones", icon: MapPin, path: "/admin/zones" },
   { label: "Stock History", icon: History, path: "/admin/stock-history" },
