@@ -628,6 +628,48 @@ export type Database = {
         }
         Relationships: []
       }
+      walkin_sales: {
+        Row: {
+          created_at: string
+          customer_name: string | null
+          id: string
+          notes: string | null
+          payment_method: string
+          product_id: string
+          product_name: string
+          quantity: number
+          sold_by: string | null
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          customer_name?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          product_id: string
+          product_name: string
+          quantity: number
+          sold_by?: string | null
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          product_id?: string
+          product_name?: string
+          quantity?: number
+          sold_by?: string | null
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: []
+      }
       wishlist_items: {
         Row: {
           created_at: string
