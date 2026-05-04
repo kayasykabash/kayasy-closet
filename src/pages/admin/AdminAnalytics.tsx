@@ -77,7 +77,20 @@ export default function AdminAnalytics() {
         <Card label="Margin" value={`${(pl?.margin || 0).toFixed(1)}%`} icon={TrendingUp} color="text-amber-500" bg="bg-amber-500/10" />
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="bg-card border rounded-xl p-4">
+        <h3 className="font-heading font-semibold text-sm mb-3">Revenue Split</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+            <p className="text-xs text-muted-foreground">Online Orders</p>
+            <p className="font-heading text-lg font-bold">₦{(pl?.onlineRevenue || 0).toLocaleString()}</p>
+          </div>
+          <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
+            <p className="text-xs text-muted-foreground">Walk-in (POS)</p>
+            <p className="font-heading text-lg font-bold">₦{(pl?.walkinRevenue || 0).toLocaleString()}</p>
+          </div>
+        </div>
+      </div>
+
         <div className="bg-card border rounded-xl p-4">
           <h3 className="font-heading font-semibold text-sm mb-4 flex items-center gap-2">
             <Package className="h-4 w-4 text-primary" /> Top Profitable Products
