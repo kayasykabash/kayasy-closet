@@ -16,6 +16,7 @@ const navItems = [
   { label: "Products", icon: Package, path: "/admin/products" },
   { label: "Orders", icon: ShoppingCart, path: "/admin/orders" },
   { label: "Walk-in Sales", icon: ShoppingBag, path: "/admin/walkin-sales" },
+  { label: "Credit (Bashi)", icon: CreditCard, path: "/admin/credit" },
   { label: "Users", icon: Users, path: "/admin/users" },
   { label: "Delivery Zones", icon: MapPin, path: "/admin/zones" },
   { label: "Stock History", icon: History, path: "/admin/stock-history" },
