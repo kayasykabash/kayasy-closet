@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Package, Users, ShoppingCart, Settings,
-  Menu, X, LogOut, Bell, ChevronDown, MapPin, History, BarChart3, ShoppingBag,
+  Menu, X, LogOut, Bell, ChevronDown, MapPin, History, BarChart3, ShoppingBag, CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
