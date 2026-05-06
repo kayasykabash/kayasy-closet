@@ -24,6 +24,7 @@ import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
 import AdminDeliveryZonesPage from "./pages/AdminDeliveryZonesPage";
 import AdminStockHistoryPage from "./pages/AdminStockHistoryPage";
 import AdminWalkInSalesPage from "./pages/AdminWalkInSalesPage";
+import AdminCreditPage from "./pages/AdminCreditPage";
 import AddressesPage from "./pages/Addresses";
 import DashboardPage from "./pages/Dashboard";
 import ResetPassword from "./pages/ResetPassword";
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/admin/zones" element={<AdminDeliveryZonesPage />} />
             <Route path="/admin/stock-history" element={<AdminStockHistoryPage />} />
             <Route path="/admin/walkin-sales" element={<AdminWalkInSalesPage />} />
+            <Route path="/admin/credit" element={<AdminCreditPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/addresses" element={<AddressesPage />} />
             <Route path="/reset-password" element={<ResetPassword />} />

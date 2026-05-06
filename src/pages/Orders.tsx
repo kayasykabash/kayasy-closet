@@ -142,6 +142,24 @@ const OrdersPage = () => {
                     </div>
                   )}
 
+                  {order.payment_method === "credit" && order.due_date && (
+                    <div className={`flex items-center justify-between gap-2 p-2 rounded text-xs mb-2 ${
+                      order.payment_status === "paid"
+                        ? "bg-green-500/10 text-green-700"
+                        : order.is_overdue
+                        ? "bg-destructive/10 text-destructive"
+                        : "bg-amber-500/10 text-amber-700"
+                    }`}>
+                      <span className="flex items-center gap-1">
+                        <CreditCard className="h-3.5 w-3.5" />
+                        Credit (Bashi) — Due {new Date(order.due_date).toLocaleDateString()}
+                      </span>
+                      <span className="font-semibold">
+                        {order.payment_status === "paid" ? "Paid ✅" : order.is_overdue ? "Overdue ❌" : "Pending ⏳"}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="space-y-1 text-sm">
                     {(order as any).order_items?.map((item: any) => (
                       <div key={item.id} className="flex justify-between">
