@@ -29,6 +29,7 @@ import AddressesPage from "./pages/Addresses";
 import DashboardPage from "./pages/Dashboard";
 import ResetPassword from "./pages/ResetPassword";
 import ReturnsPage from "./pages/Returns";
+import CreditWallet from "./pages/CreditWallet";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/addresses" element={<AddressesPage />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/returns" element={<ReturnsPage />} />
+            <Route path="/credit" element={<CreditWallet />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
