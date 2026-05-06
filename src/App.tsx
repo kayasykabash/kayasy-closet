@@ -24,6 +24,7 @@ import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
 import AdminDeliveryZonesPage from "./pages/AdminDeliveryZonesPage";
 import AdminStockHistoryPage from "./pages/AdminStockHistoryPage";
 import AdminWalkInSalesPage from "./pages/AdminWalkInSalesPage";
+import AdminCreditPage from "./pages/AdminCreditPage";
 import AddressesPage from "./pages/Addresses";
 import DashboardPage from "./pages/Dashboard";
 import ResetPassword from "./pages/ResetPassword";
