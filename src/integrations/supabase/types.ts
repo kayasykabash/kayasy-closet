@@ -153,6 +153,36 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_logs: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          order_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          order_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          order_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           color: string | null
@@ -704,6 +734,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_credit_reminders: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -712,6 +743,10 @@ export type Database = {
         Returns: boolean
       }
       mark_overdue_orders: { Args: never; Returns: number }
+      repay_credit_order: {
+        Args: { _amount: number; _method?: string; _order_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"
