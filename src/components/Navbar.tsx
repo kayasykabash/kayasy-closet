@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Search, ShoppingCart, Heart, User, Menu, X, ChevronDown } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/hooks/useCart";
@@ -73,6 +74,8 @@ export function Navbar() {
             <Search className="h-5 w-5" />
           </button>
 
+          {user && <NotificationBell />}
+
           {user && (
             <Link to="/wishlist" className="p-2 hidden sm:block">
               <Heart className="h-5 w-5" />
@@ -96,6 +99,7 @@ export function Navbar() {
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={() => navigate("/dashboard")}>My Dashboard</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/orders")}>My Orders</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/credit")}>My Credit</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/addresses")}>My Addresses</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/wishlist")}>Wishlist</DropdownMenuItem>
                 {isAdmin && (
