@@ -278,7 +278,10 @@ export type Database = {
       }
       orders: {
         Row: {
+          admin_notes: string | null
           amount_due: number | null
+          confirmed_at: string | null
+          confirmed_by: string | null
           created_at: string
           delivery_address: string
           delivery_city: string | null
@@ -290,6 +293,7 @@ export type Database = {
           id: string
           is_overdue: boolean
           notes: string | null
+          payment_confirmed: boolean
           payment_expires_at: string | null
           payment_method: string
           payment_proof_url: string | null
@@ -301,7 +305,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
           amount_due?: number | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           created_at?: string
           delivery_address: string
           delivery_city?: string | null
@@ -313,6 +320,7 @@ export type Database = {
           id?: string
           is_overdue?: boolean
           notes?: string | null
+          payment_confirmed?: boolean
           payment_expires_at?: string | null
           payment_method?: string
           payment_proof_url?: string | null
@@ -324,7 +332,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
           amount_due?: number | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           created_at?: string
           delivery_address?: string
           delivery_city?: string | null
@@ -336,6 +347,7 @@ export type Database = {
           id?: string
           is_overdue?: boolean
           notes?: string | null
+          payment_confirmed?: boolean
           payment_expires_at?: string | null
           payment_method?: string
           payment_proof_url?: string | null
@@ -433,11 +445,13 @@ export type Database = {
           credit_balance: number
           credit_limit: number
           credit_score: number
+          credit_suspended: boolean
           full_name: string | null
           id: string
           is_blocked: boolean
           phone: string | null
           state: string | null
+          suspension_reason: string | null
           updated_at: string
           user_id: string
         }
@@ -451,11 +465,13 @@ export type Database = {
           credit_balance?: number
           credit_limit?: number
           credit_score?: number
+          credit_suspended?: boolean
           full_name?: string | null
           id?: string
           is_blocked?: boolean
           phone?: string | null
           state?: string | null
+          suspension_reason?: string | null
           updated_at?: string
           user_id: string
         }
@@ -469,11 +485,13 @@ export type Database = {
           credit_balance?: number
           credit_limit?: number
           credit_score?: number
+          credit_suspended?: boolean
           full_name?: string | null
           id?: string
           is_blocked?: boolean
           phone?: string | null
           state?: string | null
+          suspension_reason?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -773,6 +791,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_credit_suspension: {
+        Args: { _reason?: string; _suspended: boolean; _user_id: string }
+        Returns: undefined
+      }
+      admin_update_credit_order: {
+        Args: {
+          _admin_notes?: string
+          _amount_due?: number
+          _confirm_payment?: boolean
+          _due_date?: string
+          _order_id: string
+          _payment_reference?: string
+          _status: string
+        }
+        Returns: Json
+      }
       generate_credit_reminders: { Args: never; Returns: number }
       has_role: {
         Args: {
