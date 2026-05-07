@@ -123,6 +123,45 @@ export type Database = {
           },
         ]
       }
+      credit_repayments: {
+        Row: {
+          amount: number
+          created_at: string
+          fully_paid: boolean
+          id: string
+          order_id: string
+          payment_method: string
+          remaining_after: number
+          status: string
+          transaction_reference: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          fully_paid?: boolean
+          id?: string
+          order_id: string
+          payment_method?: string
+          remaining_after?: number
+          status?: string
+          transaction_reference?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          fully_paid?: boolean
+          id?: string
+          order_id?: string
+          payment_method?: string
+          remaining_after?: number
+          status?: string
+          transaction_reference?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       delivery_zones: {
         Row: {
           city: string | null
