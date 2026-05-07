@@ -350,19 +350,16 @@ function ManageOrderDialog({
   const [confirm, setConfirm] = useState<boolean>(false);
   const [saving, setSaving] = useState(false);
 
-  // Reset on open
-  useState(() => {});
-  if (order && !saving && status === "pending" && amountDue === "") {
-    // initialize once
-    setTimeout(() => {
+  useEffect(() => {
+    if (order) {
       setStatus(deriveStatus(order));
       setAmountDue(String(order.amount_due ?? order.total ?? ""));
       setDueDate(order.due_date ? order.due_date.slice(0, 10) : "");
       setNotes(order.admin_notes || "");
       setReference("");
       setConfirm(!!order.payment_confirmed);
-    }, 0);
-  }
+    }
+  }, [order?.id]);
 
   const handleSave = async () => {
     if (!order) return;
