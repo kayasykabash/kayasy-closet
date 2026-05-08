@@ -300,7 +300,7 @@ export default function CreditWallet() {
                         <th className="text-left px-3 py-2">Method</th>
                         <th className="text-left px-3 py-2">Date</th>
                         <th className="text-left px-3 py-2">Status</th>
-                      </tr>
+                        <th className="text-right px-3 py-2">Receipt</th>
                     </thead>
                     <tbody>
                       {pageRows.map((r: any) => (
