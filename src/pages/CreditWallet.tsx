@@ -301,6 +301,7 @@ export default function CreditWallet() {
                         <th className="text-left px-3 py-2">Date</th>
                         <th className="text-left px-3 py-2">Status</th>
                         <th className="text-right px-3 py-2">Receipt</th>
+                      </tr>
                     </thead>
                     <tbody>
                       {pageRows.map((r: any) => (
@@ -318,6 +319,11 @@ export default function CreditWallet() {
                             }>
                               {r.status}
                             </Badge>
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            <Button variant="ghost" size="sm" onClick={() => downloadReceipt(r)}>
+                              <Download className="h-3.5 w-3.5" />
+                            </Button>
                           </td>
                         </tr>
                       ))}
