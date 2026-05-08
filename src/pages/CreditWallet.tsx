@@ -452,3 +452,38 @@ function Row({ label, value, mono, bold }: { label: string; value: string; mono?
     </div>
   );
 }
+
+function Countdown({ date }: { date: string }) {
+  const ms = new Date(date).getTime() - Date.now();
+  if (ms <= 0) {
+    const days = Math.floor(-ms / 86400000);
+    return <span className="text-destructive font-medium">Overdue by {days}d</span>;
+  }
+  const days = Math.floor(ms / 86400000);
+  const hours = Math.floor((ms % 86400000) / 3600000);
+  const cls = days <= 2 ? "text-amber-600 font-medium" : "text-muted-foreground";
+  return <span className={cls}>{days > 0 ? `${days}d ${hours}h left` : `${hours}h left`}</span>;
+}
+
+function downloadReceipt(r: any) {
+  const text = `KAYASY ALL IN ONE COLLECTION
+Credit Repayment Receipt
+=================================
+Reference: ${r.transaction_reference || r.id}
+Order:     #${(r.order_id || "").slice(0, 8).toUpperCase()}
+Amount:    NGN ${Number(r.amount).toLocaleString()}
+Method:    ${r.payment_method}
+Status:    ${r.status}
+Remaining: NGN ${Number(r.remaining_after || 0).toLocaleString()}
+Fully Paid:${r.fully_paid ? " Yes" : " No"}
+Date:      ${new Date(r.created_at).toLocaleString()}
+=================================
+Thank you for your payment.`;
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `receipt-${r.transaction_reference || r.id}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
