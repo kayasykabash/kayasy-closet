@@ -242,9 +242,11 @@ export default function CreditWallet() {
                         <p className="text-[10px] text-muted-foreground">{pct.toFixed(0)}% repaid</p>
                       </div>
 
-                      <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center justify-between text-xs gap-2 flex-wrap">
                         <span className="text-muted-foreground">
-                          Due: {o.due_date ? new Date(o.due_date).toLocaleDateString() : "—"}
+                          {o.due_date ? (
+                            <>Due: {new Date(o.due_date).toLocaleDateString()}{!paid && <> • <Countdown date={o.due_date} /></>}</>
+                          ) : "—"}
                         </span>
                         {!paid && (
                           <Button size="sm" onClick={() => { setPayOrder(o); setAmount(String(due)); setMethod("paystack"); }}>
