@@ -156,11 +156,13 @@ export default function CreditWallet() {
             {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
             <Stat icon={Wallet} label="Outstanding" value={`₦${(data?.totalOutstanding || 0).toLocaleString()}`} color="text-amber-500" bg="bg-amber-500/10" />
             <Stat icon={AlertTriangle} label="Overdue" value={`₦${(data?.overdueAmount || 0).toLocaleString()}`} color="text-destructive" bg="bg-destructive/10" />
             <Stat icon={CreditCard} label="Credit Limit" value={`₦${limit.toLocaleString()}`} color="text-blue-500" bg="bg-blue-500/10" />
             <Stat icon={CheckCircle2} label="Available" value={`₦${available.toLocaleString()}`} color="text-green-600" bg="bg-green-500/10" />
+            <Stat icon={TrendingUp} label="Total Repaid" value={`₦${(data?.totalRepaid || 0).toLocaleString()}`} color="text-emerald-600" bg="bg-emerald-500/10" />
+            <Stat icon={CalendarClock} label="Next Due" value={data?.nextDueDate ? new Date(data.nextDueDate).toLocaleDateString() : "—"} color="text-purple-600" bg="bg-purple-500/10" />
           </div>
         )}
 
