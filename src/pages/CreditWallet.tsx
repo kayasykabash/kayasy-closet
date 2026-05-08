@@ -50,7 +50,12 @@ export default function CreditWallet() {
       const overdue = unpaid.filter(o => o.is_overdue);
       const totalOutstanding = unpaid.reduce((s, o) => s + Number(o.amount_due || o.total), 0);
       const overdueAmount = overdue.reduce((s, o) => s + Number(o.amount_due || o.total), 0);
-      return { profile, all, unpaid, overdue, totalOutstanding, overdueAmount };
+      const totalRepaid = all.reduce((s, o) => s + Math.max(0, Number(o.total) - Number(o.amount_due ?? o.total)), 0);
+      const upcoming = unpaid
+        .filter(o => o.due_date && !o.is_overdue)
+        .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+      const nextDueDate = upcoming[0]?.due_date || null;
+      return { profile, all, unpaid, overdue, totalOutstanding, overdueAmount, totalRepaid, nextDueDate };
     },
   });
 
