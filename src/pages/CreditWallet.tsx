@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import {
   CreditCard, Wallet, AlertTriangle, Clock, CheckCircle2, History,
-  ShoppingBag, Search, TrendingUp, Receipt, ArrowUpRight,
+  ShoppingBag, Search, TrendingUp, Receipt, ArrowUpRight, Download, CalendarClock,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -50,7 +50,12 @@ export default function CreditWallet() {
       const overdue = unpaid.filter(o => o.is_overdue);
       const totalOutstanding = unpaid.reduce((s, o) => s + Number(o.amount_due || o.total), 0);
       const overdueAmount = overdue.reduce((s, o) => s + Number(o.amount_due || o.total), 0);
-      return { profile, all, unpaid, overdue, totalOutstanding, overdueAmount };
+      const totalRepaid = all.reduce((s, o) => s + Math.max(0, Number(o.total) - Number(o.amount_due ?? o.total)), 0);
+      const upcoming = unpaid
+        .filter(o => o.due_date && !o.is_overdue)
+        .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+      const nextDueDate = upcoming[0]?.due_date || null;
+      return { profile, all, unpaid, overdue, totalOutstanding, overdueAmount, totalRepaid, nextDueDate };
     },
   });
 
@@ -147,15 +152,17 @@ export default function CreditWallet() {
 
         {/* Stat Cards */}
         {isLoading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+            {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
             <Stat icon={Wallet} label="Outstanding" value={`₦${(data?.totalOutstanding || 0).toLocaleString()}`} color="text-amber-500" bg="bg-amber-500/10" />
             <Stat icon={AlertTriangle} label="Overdue" value={`₦${(data?.overdueAmount || 0).toLocaleString()}`} color="text-destructive" bg="bg-destructive/10" />
             <Stat icon={CreditCard} label="Credit Limit" value={`₦${limit.toLocaleString()}`} color="text-blue-500" bg="bg-blue-500/10" />
             <Stat icon={CheckCircle2} label="Available" value={`₦${available.toLocaleString()}`} color="text-green-600" bg="bg-green-500/10" />
+            <Stat icon={TrendingUp} label="Total Repaid" value={`₦${(data?.totalRepaid || 0).toLocaleString()}`} color="text-emerald-600" bg="bg-emerald-500/10" />
+            <Stat icon={CalendarClock} label="Next Due" value={data?.nextDueDate ? new Date(data.nextDueDate).toLocaleDateString() : "—"} color="text-purple-600" bg="bg-purple-500/10" />
           </div>
         )}
 
@@ -235,9 +242,11 @@ export default function CreditWallet() {
                         <p className="text-[10px] text-muted-foreground">{pct.toFixed(0)}% repaid</p>
                       </div>
 
-                      <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center justify-between text-xs gap-2 flex-wrap">
                         <span className="text-muted-foreground">
-                          Due: {o.due_date ? new Date(o.due_date).toLocaleDateString() : "—"}
+                          {o.due_date ? (
+                            <>Due: {new Date(o.due_date).toLocaleDateString()}{!paid && <> • <Countdown date={o.due_date} /></>}</>
+                          ) : "—"}
                         </span>
                         {!paid && (
                           <Button size="sm" onClick={() => { setPayOrder(o); setAmount(String(due)); setMethod("paystack"); }}>
@@ -291,6 +300,7 @@ export default function CreditWallet() {
                         <th className="text-left px-3 py-2">Method</th>
                         <th className="text-left px-3 py-2">Date</th>
                         <th className="text-left px-3 py-2">Status</th>
+                        <th className="text-right px-3 py-2">Receipt</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -309,6 +319,11 @@ export default function CreditWallet() {
                             }>
                               {r.status}
                             </Badge>
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            <Button variant="ghost" size="sm" onClick={() => downloadReceipt(r)}>
+                              <Download className="h-3.5 w-3.5" />
+                            </Button>
                           </td>
                         </tr>
                       ))}
@@ -436,4 +451,39 @@ function Row({ label, value, mono, bold }: { label: string; value: string; mono?
       <span className={`${mono ? "font-mono text-xs" : ""} ${bold ? "font-semibold" : ""}`}>{value}</span>
     </div>
   );
+}
+
+function Countdown({ date }: { date: string }) {
+  const ms = new Date(date).getTime() - Date.now();
+  if (ms <= 0) {
+    const days = Math.floor(-ms / 86400000);
+    return <span className="text-destructive font-medium">Overdue by {days}d</span>;
+  }
+  const days = Math.floor(ms / 86400000);
+  const hours = Math.floor((ms % 86400000) / 3600000);
+  const cls = days <= 2 ? "text-amber-600 font-medium" : "text-muted-foreground";
+  return <span className={cls}>{days > 0 ? `${days}d ${hours}h left` : `${hours}h left`}</span>;
+}
+
+function downloadReceipt(r: any) {
+  const text = `KAYASY ALL IN ONE COLLECTION
+Credit Repayment Receipt
+=================================
+Reference: ${r.transaction_reference || r.id}
+Order:     #${(r.order_id || "").slice(0, 8).toUpperCase()}
+Amount:    NGN ${Number(r.amount).toLocaleString()}
+Method:    ${r.payment_method}
+Status:    ${r.status}
+Remaining: NGN ${Number(r.remaining_after || 0).toLocaleString()}
+Fully Paid:${r.fully_paid ? " Yes" : " No"}
+Date:      ${new Date(r.created_at).toLocaleString()}
+=================================
+Thank you for your payment.`;
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `receipt-${r.transaction_reference || r.id}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
