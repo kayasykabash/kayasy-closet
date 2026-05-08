@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import {
   CreditCard, Wallet, AlertTriangle, Clock, CheckCircle2, History,
-  ShoppingBag, Search, TrendingUp, Receipt, ArrowUpRight,
+  ShoppingBag, Search, TrendingUp, Receipt, ArrowUpRight, Download, CalendarClock,
 } from "lucide-react";
 import { toast } from "sonner";
 
