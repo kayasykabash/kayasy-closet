@@ -30,6 +30,7 @@ import DashboardPage from "./pages/Dashboard";
 import ResetPassword from "./pages/ResetPassword";
 import ReturnsPage from "./pages/Returns";
 import CreditWallet from "./pages/CreditWallet";
+import AsoEbiStyles from "./pages/AsoEbiStyles";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/returns" element={<ReturnsPage />} />
             <Route path="/credit" element={<CreditWallet />} />
+            <Route path="/blog/aso-ebi-styles" element={<AsoEbiStyles />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
