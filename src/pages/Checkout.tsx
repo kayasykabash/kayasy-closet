@@ -110,16 +110,22 @@ const CheckoutPage = () => {
 
       const orderItems = cartItems.map((item: any) => {
         const product = item.product;
+        const variant = item.variant;
+        const unitPrice = (product?.price || 0) + Number(variant?.extra_price || 0);
         return {
           order_id: order.id,
           product_id: item.product_id,
           product_name: product?.name || "Unknown",
-          product_image: product?.images?.[0] || null,
+          product_image: item.variant_image || variant?.images?.[0] || product?.images?.[0] || null,
           quantity: item.quantity,
-          price: product?.price || 0,
+          price: unitPrice,
           size: item.size,
-          color: item.color,
-          design: item.design,
+          color: item.color || variant?.color,
+          design: item.design || variant?.design_name,
+          variant_id: item.variant_id || null,
+          variant_design: variant?.design_name || null,
+          variant_color: variant?.color || null,
+          variant_image: item.variant_image || variant?.images?.[0] || null,
         };
       });
 
@@ -266,11 +272,13 @@ const CheckoutPage = () => {
             <h2 className="font-heading font-semibold mb-3">Order Summary</h2>
             {cartItems.map((item: any) => {
               const product = item.product;
-              const variant = [item.size, item.color, item.design].filter(Boolean).join(" / ");
+              const variant = item.variant;
+              const unit = (product?.price || 0) + Number(variant?.extra_price || 0);
+              const label = [variant?.design_name, item.size, item.color].filter(Boolean).join(" / ");
               return (
                 <div key={item.id} className="flex justify-between text-sm py-1">
-                  <span>{product?.name} x{item.quantity}{variant ? ` (${variant})` : ""}</span>
-                  <span>₦{((product?.price || 0) * item.quantity).toLocaleString()}</span>
+                  <span>{product?.name} x{item.quantity}{label ? ` (${label})` : ""}</span>
+                  <span>₦{(unit * item.quantity).toLocaleString()}</span>
                 </div>
               );
             })}

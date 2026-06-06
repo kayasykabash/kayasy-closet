@@ -13,7 +13,7 @@ export function useCart() {
       if (!user) return [];
       const { data, error } = await supabase
         .from("cart_items")
-        .select("*, product:products(*)")
+        .select("*, product:products(*), variant:product_variants(*)")
         .eq("user_id", user.id);
       if (error) throw error;
       return data;
@@ -22,14 +22,14 @@ export function useCart() {
   });
 
   const addToCart = useMutation({
-    mutationFn: async ({ productId, quantity = 1, size, color, design }: { productId: string; quantity?: number; size?: string; color?: string; design?: string }) => {
+    mutationFn: async ({ productId, quantity = 1, size, color, design, variantId, variantImage }: { productId: string; quantity?: number; size?: string; color?: string; design?: string; variantId?: string; variantImage?: string }) => {
       if (!user) throw new Error("Please sign in");
-      const existing = cartItems.find((i: any) => i.product_id === productId && i.size === size && i.color === color && i.design === design);
+      const existing = cartItems.find((i: any) => i.product_id === productId && i.size === size && i.color === color && i.design === design && i.variant_id === (variantId ?? null));
       if (existing) {
         const { error } = await supabase.from("cart_items").update({ quantity: existing.quantity + quantity }).eq("id", existing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("cart_items").insert({ user_id: user.id, product_id: productId, quantity, size, color, design } as any);
+        const { error } = await supabase.from("cart_items").insert({ user_id: user.id, product_id: productId, quantity, size, color, design, variant_id: variantId ?? null, variant_image: variantImage ?? null } as any);
         if (error) throw error;
       }
     },
@@ -58,7 +58,8 @@ export function useCart() {
 
   const total = cartItems.reduce((sum, item) => {
     const price = (item as any).product?.price ?? 0;
-    return sum + price * item.quantity;
+    const extra = Number((item as any).variant?.extra_price ?? 0);
+    return sum + (price + extra) * item.quantity;
   }, 0);
 
   return { cartItems, isLoading, addToCart, updateQuantity, clearCart, total, count: cartItems.length };

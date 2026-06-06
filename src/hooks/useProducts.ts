@@ -51,10 +51,15 @@ export function useProduct(slug: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*, category:categories(*)")
+        .select("*, category:categories(*), variants:product_variants(*)")
         .eq("slug", slug)
         .maybeSingle();
       if (error) throw error;
+      if (data && (data as any).variants) {
+        (data as any).variants = [...(data as any).variants].sort(
+          (a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+        );
+      }
       return data;
     },
     enabled: !!slug,
