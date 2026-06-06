@@ -272,11 +272,13 @@ const CheckoutPage = () => {
             <h2 className="font-heading font-semibold mb-3">Order Summary</h2>
             {cartItems.map((item: any) => {
               const product = item.product;
-              const variant = [item.size, item.color, item.design].filter(Boolean).join(" / ");
+              const variant = item.variant;
+              const unit = (product?.price || 0) + Number(variant?.extra_price || 0);
+              const label = [variant?.design_name, item.size, item.color].filter(Boolean).join(" / ");
               return (
                 <div key={item.id} className="flex justify-between text-sm py-1">
-                  <span>{product?.name} x{item.quantity}{variant ? ` (${variant})` : ""}</span>
-                  <span>₦{((product?.price || 0) * item.quantity).toLocaleString()}</span>
+                  <span>{product?.name} x{item.quantity}{label ? ` (${label})` : ""}</span>
+                  <span>₦{(unit * item.quantity).toLocaleString()}</span>
                 </div>
               );
             })}
