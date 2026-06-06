@@ -40,28 +40,34 @@ const CartPage = () => {
             <div className="lg:col-span-2 space-y-3">
               {cartItems.map(item => {
                 const product = (item as any).product;
+                const variant = (item as any).variant;
+                const img = (item as any).variant_image || variant?.images?.[0] || product?.images?.[0];
+                const unit = (product?.price || 0) + Number(variant?.extra_price || 0);
                 return (
                   <div key={item.id} className="flex gap-4 p-4 border rounded-lg bg-card">
                     <Link to={`/product/${product?.slug}`} className="w-20 h-20 bg-muted rounded overflow-hidden flex-shrink-0">
-                      {product?.images?.[0] ? (
-                        <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
+                      {img ? (
+                        <img src={img} alt={product?.name} className="h-full w-full object-cover" />
                       ) : (
                         <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No img</div>
                       )}
                     </Link>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-sm font-medium truncate">{product?.name}</h3>
+                      {variant?.design_name && (
+                        <p className="text-xs text-muted-foreground">Design: {variant.design_name}{variant.color ? ` · ${variant.color}` : ""}</p>
+                      )}
                       {item.size && <p className="text-xs text-muted-foreground">Size: {item.size}</p>}
-                      <p className="font-heading font-bold text-sm mt-1">₦{product?.price?.toLocaleString()}</p>
+                      <p className="font-heading font-bold text-sm mt-1">₦{unit.toLocaleString()}</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <button onClick={() => updateQuantity.mutate({ id: item.id, quantity: item.quantity - 1 })} className="p-1 border rounded">
+                        <button onClick={() => updateQuantity.mutate({ id: item.id, quantity: item.quantity - 1 })} className="p-1 border rounded" aria-label="Decrease quantity">
                           <Minus className="h-3 w-3" />
                         </button>
                         <span className="text-sm w-6 text-center">{item.quantity}</span>
-                        <button onClick={() => updateQuantity.mutate({ id: item.id, quantity: item.quantity + 1 })} className="p-1 border rounded">
+                        <button onClick={() => updateQuantity.mutate({ id: item.id, quantity: item.quantity + 1 })} className="p-1 border rounded" aria-label="Increase quantity">
                           <Plus className="h-3 w-3" />
                         </button>
-                        <button onClick={() => updateQuantity.mutate({ id: item.id, quantity: 0 })} className="ml-auto p-1 text-destructive">
+                        <button onClick={() => updateQuantity.mutate({ id: item.id, quantity: 0 })} className="ml-auto p-1 text-destructive" aria-label="Remove item">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
