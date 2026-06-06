@@ -130,6 +130,17 @@ export default function AdminProducts() {
   );
 }
 
+type VariantDraft = {
+  id?: string;
+  design_name: string;
+  color: string;
+  extra_price: string;
+  stock: string;
+  images: string[];
+  newFiles: File[];
+  _delete?: boolean;
+};
+
 function ProductForm({ product, categories, onClose }: { product: any; categories: any[]; onClose: () => void }) {
   const [form, setForm] = useState({
     name: product?.name || "",
@@ -140,18 +151,43 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
     category_id: product?.category_id || "",
     sizes: product?.sizes?.join(", ") || "",
     colors: product?.colors?.join(", ") || "",
-    designs: product?.designs?.join(", ") || "",
     stock: product?.stock?.toString() || "0",
     cost_price: product?.cost_price?.toString() || "0",
     is_featured: product?.is_featured || false,
   });
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>(product?.images || []);
+  const [variants, setVariants] = useState<VariantDraft[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const uploadImages = async (): Promise<string[]> => {
-    const urls: string[] = [...existingImages];
-    for (const file of imageFiles) {
+  // Load existing variants
+  useEffect(() => {
+    if (!product?.id) return;
+    supabase
+      .from("product_variants")
+      .select("*")
+      .eq("product_id", product.id)
+      .order("sort_order")
+      .then(({ data }) => {
+        if (data) {
+          setVariants(
+            data.map((v: any) => ({
+              id: v.id,
+              design_name: v.design_name,
+              color: v.color || "",
+              extra_price: String(v.extra_price ?? 0),
+              stock: String(v.stock ?? 0),
+              images: v.images || [],
+              newFiles: [],
+            }))
+          );
+        }
+      });
+  }, [product?.id]);
+
+  const uploadFiles = async (files: File[]): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const file of files) {
       const ext = file.name.split(".").pop();
       const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error } = await supabase.storage.from("product-images").upload(path, file);
@@ -162,11 +198,21 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
     return urls;
   };
 
+  const addVariant = () =>
+    setVariants(v => [...v, { design_name: "", color: "", extra_price: "0", stock: "0", images: [], newFiles: [] }]);
+  const removeVariant = (idx: number) =>
+    setVariants(vs => vs.map((v, i) => (i === idx ? { ...v, _delete: true } : v)));
+  const updateVariant = (idx: number, patch: Partial<VariantDraft>) =>
+    setVariants(vs => vs.map((v, i) => (i === idx ? { ...v, ...patch } : v)));
+  const removeVariantImage = (idx: number, imgIdx: number) =>
+    setVariants(vs => vs.map((v, i) => (i === idx ? { ...v, images: v.images.filter((_, k) => k !== imgIdx) } : v)));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const images = imageFiles.length > 0 ? await uploadImages() : existingImages;
+      const newProductImages = imageFiles.length > 0 ? await uploadFiles(imageFiles) : [];
+      const images = [...existingImages, ...newProductImages];
       const payload = {
         name: form.name,
         slug: form.slug || form.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
@@ -176,22 +222,51 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
         category_id: form.category_id || null,
         sizes: form.sizes ? form.sizes.split(",").map(s => s.trim()).filter(Boolean) : [],
         colors: form.colors ? form.colors.split(",").map(s => s.trim()).filter(Boolean) : [],
-        designs: form.designs ? form.designs.split(",").map(s => s.trim()).filter(Boolean) : [],
+        designs: variants.filter(v => !v._delete).map(v => v.design_name).filter(Boolean),
         stock: parseInt(form.stock) || 0,
         cost_price: parseFloat(form.cost_price) || 0,
         is_featured: form.is_featured,
         images,
       };
 
+      let productId = product?.id;
       if (product) {
         const { error } = await supabase.from("products").update(payload).eq("id", product.id);
         if (error) throw error;
-        toast.success("Product updated");
       } else {
-        const { error } = await supabase.from("products").insert(payload);
+        const { data, error } = await supabase.from("products").insert(payload).select().single();
         if (error) throw error;
-        toast.success("Product created");
+        productId = data.id;
       }
+
+      // Sync variants
+      for (let i = 0; i < variants.length; i++) {
+        const v = variants[i];
+        if (v._delete) {
+          if (v.id) await supabase.from("product_variants").delete().eq("id", v.id);
+          continue;
+        }
+        if (!v.design_name.trim()) continue;
+        const uploadedUrls = v.newFiles.length > 0 ? await uploadFiles(v.newFiles) : [];
+        const variantPayload = {
+          product_id: productId,
+          design_name: v.design_name.trim(),
+          color: v.color.trim() || null,
+          extra_price: parseFloat(v.extra_price) || 0,
+          stock: parseInt(v.stock) || 0,
+          images: [...v.images, ...uploadedUrls],
+          sort_order: i,
+        };
+        if (v.id) {
+          const { error } = await supabase.from("product_variants").update(variantPayload).eq("id", v.id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from("product_variants").insert(variantPayload);
+          if (error) throw error;
+        }
+      }
+
+      toast.success(product ? "Product updated" : "Product created");
       onClose();
     } catch (err: any) {
       toast.error(err.message);
@@ -203,6 +278,8 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
   const removeImage = (idx: number) => {
     setExistingImages(prev => prev.filter((_, i) => i !== idx));
   };
+
+  const visibleVariants = variants.map((v, i) => ({ v, i })).filter(({ v }) => !v._delete);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -224,13 +301,12 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
         </Select>
       </div>
       <div><Label>Sizes (comma-separated)</Label><Input value={form.sizes} onChange={e => setForm(f => ({ ...f, sizes: e.target.value }))} placeholder="S, M, L, XL" /></div>
-      <div><Label>Colors (comma-separated)</Label><Input value={form.colors} onChange={e => setForm(f => ({ ...f, colors: e.target.value }))} placeholder="Red, Blue, Black" /></div>
-      <div><Label>Designs (comma-separated)</Label><Input value={form.designs} onChange={e => setForm(f => ({ ...f, designs: e.target.value }))} placeholder="Floral, Plain, Striped" /></div>
-      <div><Label>Stock</Label><Input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} /></div>
+      <div><Label>Colors (comma-separated, legacy)</Label><Input value={form.colors} onChange={e => setForm(f => ({ ...f, colors: e.target.value }))} placeholder="Use Variants below for designs" /></div>
+      <div><Label>Base Stock (used when no variants)</Label><Input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} /></div>
 
-      {/* Image upload */}
+      {/* Default product images */}
       <div>
-        <Label>Product Images</Label>
+        <Label>Default Product Images</Label>
         {existingImages.length > 0 && (
           <div className="flex gap-2 mt-2 mb-2 flex-wrap">
             {existingImages.map((url, i) => (
@@ -248,6 +324,72 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
           </span>
           <input type="file" accept="image/*" multiple className="hidden" onChange={e => setImageFiles(Array.from(e.target.files || []))} />
         </label>
+      </div>
+
+      {/* Variants */}
+      <div className="border rounded-lg p-3 bg-muted/20 space-y-3">
+        <div className="flex items-center justify-between">
+          <Label className="text-sm font-semibold">Product Variants / Designs</Label>
+          <Button type="button" size="sm" variant="outline" onClick={addVariant}>
+            <Plus className="h-3 w-3 mr-1" /> Add Design
+          </Button>
+        </div>
+        {visibleVariants.length === 0 && (
+          <p className="text-xs text-muted-foreground">No variants yet. Add designs like "Black Senator", "White Senator" — each with their own images, stock and price.</p>
+        )}
+        {visibleVariants.map(({ v, i }) => (
+          <div key={i} className="border rounded-lg p-3 bg-card space-y-2 relative">
+            <button
+              type="button"
+              onClick={() => removeVariant(i)}
+              className="absolute top-2 right-2 text-destructive hover:bg-destructive/10 rounded p-1"
+              aria-label="Remove design"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Design Name</Label>
+                <Input value={v.design_name} onChange={e => updateVariant(i, { design_name: e.target.value })} placeholder="Black Senator" />
+              </div>
+              <div>
+                <Label className="text-xs">Color</Label>
+                <Input value={v.color} onChange={e => updateVariant(i, { color: e.target.value })} placeholder="Black" />
+              </div>
+              <div>
+                <Label className="text-xs">Stock</Label>
+                <Input type="number" value={v.stock} onChange={e => updateVariant(i, { stock: e.target.value })} />
+              </div>
+              <div>
+                <Label className="text-xs">Extra Price (₦)</Label>
+                <Input type="number" value={v.extra_price} onChange={e => updateVariant(i, { extra_price: e.target.value })} />
+              </div>
+            </div>
+            {parseInt(v.stock) > 0 && parseInt(v.stock) < 5 && (
+              <p className="text-xs text-amber-600 flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Low stock</p>
+            )}
+            <div>
+              <Label className="text-xs">Images (front, back, side...)</Label>
+              {v.images.length > 0 && (
+                <div className="flex gap-2 mt-1 mb-1 flex-wrap">
+                  {v.images.map((url, k) => (
+                    <div key={k} className="relative w-12 h-12 rounded overflow-hidden border">
+                      <img src={url} alt="" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => removeVariantImage(i, k)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 text-[10px] flex items-center justify-center">×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label className="flex items-center gap-2 border border-dashed rounded p-2 cursor-pointer hover:bg-muted/50 transition-colors">
+                <Upload className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {v.newFiles.length > 0 ? `${v.newFiles.length} new file(s)` : "Add images"}
+                </span>
+                <input type="file" accept="image/*" multiple className="hidden" onChange={e => updateVariant(i, { newFiles: Array.from(e.target.files || []) })} />
+              </label>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="flex items-center gap-2">
