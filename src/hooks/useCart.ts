@@ -13,7 +13,7 @@ export function useCart() {
       if (!user) return [];
       const { data, error } = await supabase
         .from("cart_items")
-        .select("*, product:products(*)")
+        .select("*, product:products(*), variant:product_variants(*)")
         .eq("user_id", user.id);
       if (error) throw error;
       return data;
