@@ -156,8 +156,9 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
     cost_price: product?.cost_price?.toString() || "0",
     is_featured: product?.is_featured || false,
   });
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [existingImages, setExistingImages] = useState<string[]>(product?.images || []);
+  const [productImages, setProductImages] = useState<ImageItem[]>(
+    (product?.images || []).map((url: string) => ({ kind: "url" as const, url }))
+  );
   const [variants, setVariants] = useState<VariantDraft[]>([]);
   const [loading, setLoading] = useState(false);
 
