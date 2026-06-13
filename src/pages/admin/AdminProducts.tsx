@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Upload, Search, Package, AlertTriangle, X } from "lucide-react";
+import { MultiImageUploader, type ImageItem } from "@/components/admin/MultiImageUploader";
 
 export default function AdminProducts() {
   const qc = useQueryClient();
