@@ -309,26 +309,13 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
       <div><Label>Base Stock (used when no variants)</Label><Input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} /></div>
 
       {/* Default product images */}
-      <div>
-        <Label>Default Product Images</Label>
-        {existingImages.length > 0 && (
-          <div className="flex gap-2 mt-2 mb-2 flex-wrap">
-            {existingImages.map((url, i) => (
-              <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border">
-                <img src={url} alt="" className="w-full h-full object-cover" />
-                <button type="button" onClick={() => removeImage(i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">×</button>
-              </div>
-            ))}
-          </div>
-        )}
-        <label className="flex items-center gap-2 border border-dashed rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
-          <Upload className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">
-            {imageFiles.length > 0 ? `${imageFiles.length} file(s) selected` : "Upload images"}
-          </span>
-          <input type="file" accept="image/*" multiple className="hidden" onChange={e => setImageFiles(Array.from(e.target.files || []))} />
-        </label>
-      </div>
+      <MultiImageUploader
+        items={productImages}
+        onChange={setProductImages}
+        label="Default Product Images"
+        help="First image is used as the cover thumbnail. Drag to reorder."
+      />
+
 
       {/* Variants */}
       <div className="border rounded-lg p-3 bg-muted/20 space-y-3">
