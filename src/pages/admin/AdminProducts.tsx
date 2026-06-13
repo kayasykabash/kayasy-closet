@@ -213,8 +213,13 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
     e.preventDefault();
     setLoading(true);
     try {
-      const newProductImages = imageFiles.length > 0 ? await uploadFiles(imageFiles) : [];
-      const images = [...existingImages, ...newProductImages];
+      // Upload any new files in productImages, keep order
+      const filesToUpload = productImages.filter(i => i.kind === "file").map(i => (i as any).file as File);
+      const uploadedUrls = filesToUpload.length > 0 ? await uploadFiles(filesToUpload) : [];
+      let uploadCursor = 0;
+      const images = productImages.map(it =>
+        it.kind === "url" ? it.url : uploadedUrls[uploadCursor++]
+      );
       const payload = {
         name: form.name,
         slug: form.slug || form.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
