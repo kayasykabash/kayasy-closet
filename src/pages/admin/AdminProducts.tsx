@@ -282,9 +282,6 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
     }
   };
 
-  const removeImage = (idx: number) => {
-    setExistingImages(prev => prev.filter((_, i) => i !== idx));
-  };
 
   const visibleVariants = variants.map((v, i) => ({ v, i })).filter(({ v }) => !v._delete);
 
