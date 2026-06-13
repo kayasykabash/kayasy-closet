@@ -119,6 +119,8 @@ const ProductPage = () => {
                   key={activeImage}
                   src={activeImage}
                   alt={product.name}
+                  loading="eager"
+                  decoding="async"
                   className="h-full w-full object-cover animate-in fade-in duration-300"
                 />
               ) : (
