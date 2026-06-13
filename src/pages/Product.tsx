@@ -139,7 +139,7 @@ const ProductPage = () => {
                     }`}
                     aria-label={`View image ${i + 1}`}
                   >
-                    <img src={img} alt="" className="h-full w-full object-cover" />
+                    <img src={img} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                   </button>
                 ))}
               </div>
