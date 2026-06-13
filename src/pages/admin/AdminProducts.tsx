@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Upload, Search, Package, AlertTriangle, X } from "lucide-react";
+import { MultiImageUploader, type ImageItem } from "@/components/admin/MultiImageUploader";
 
 export default function AdminProducts() {
   const qc = useQueryClient();
@@ -155,8 +156,9 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
     cost_price: product?.cost_price?.toString() || "0",
     is_featured: product?.is_featured || false,
   });
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [existingImages, setExistingImages] = useState<string[]>(product?.images || []);
+  const [productImages, setProductImages] = useState<ImageItem[]>(
+    (product?.images || []).map((url: string) => ({ kind: "url" as const, url }))
+  );
   const [variants, setVariants] = useState<VariantDraft[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -211,8 +213,13 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
     e.preventDefault();
     setLoading(true);
     try {
-      const newProductImages = imageFiles.length > 0 ? await uploadFiles(imageFiles) : [];
-      const images = [...existingImages, ...newProductImages];
+      // Upload any new files in productImages, keep order
+      const filesToUpload = productImages.filter(i => i.kind === "file").map(i => (i as any).file as File);
+      const uploadedUrls = filesToUpload.length > 0 ? await uploadFiles(filesToUpload) : [];
+      let uploadCursor = 0;
+      const images = productImages.map(it =>
+        it.kind === "url" ? it.url : uploadedUrls[uploadCursor++]
+      );
       const payload = {
         name: form.name,
         slug: form.slug || form.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
@@ -275,9 +282,6 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
     }
   };
 
-  const removeImage = (idx: number) => {
-    setExistingImages(prev => prev.filter((_, i) => i !== idx));
-  };
 
   const visibleVariants = variants.map((v, i) => ({ v, i })).filter(({ v }) => !v._delete);
 
@@ -305,26 +309,13 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
       <div><Label>Base Stock (used when no variants)</Label><Input type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} /></div>
 
       {/* Default product images */}
-      <div>
-        <Label>Default Product Images</Label>
-        {existingImages.length > 0 && (
-          <div className="flex gap-2 mt-2 mb-2 flex-wrap">
-            {existingImages.map((url, i) => (
-              <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border">
-                <img src={url} alt="" className="w-full h-full object-cover" />
-                <button type="button" onClick={() => removeImage(i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">×</button>
-              </div>
-            ))}
-          </div>
-        )}
-        <label className="flex items-center gap-2 border border-dashed rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
-          <Upload className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">
-            {imageFiles.length > 0 ? `${imageFiles.length} file(s) selected` : "Upload images"}
-          </span>
-          <input type="file" accept="image/*" multiple className="hidden" onChange={e => setImageFiles(Array.from(e.target.files || []))} />
-        </label>
-      </div>
+      <MultiImageUploader
+        items={productImages}
+        onChange={setProductImages}
+        label="Default Product Images"
+        help="First image is used as the cover thumbnail. Drag to reorder."
+      />
+
 
       {/* Variants */}
       <div className="border rounded-lg p-3 bg-muted/20 space-y-3">
