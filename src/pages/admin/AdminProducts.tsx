@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Upload, Search, Package, AlertTriangle, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Package, AlertTriangle, X } from "lucide-react";
 import { MultiImageUploader, type ImageItem } from "@/components/admin/MultiImageUploader";
 import { getVariantPriceInput } from "@/lib/pricing";
 
@@ -376,26 +376,12 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
             {parseInt(v.stock) > 0 && parseInt(v.stock) < 5 && (
               <p className="text-xs text-amber-600 flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Low stock</p>
             )}
-            <div>
-              <Label className="text-xs">Images (front, back, side...)</Label>
-              {v.images.length > 0 && (
-                <div className="flex gap-2 mt-1 mb-1 flex-wrap">
-                  {v.images.map((url, k) => (
-                    <div key={k} className="relative w-12 h-12 rounded overflow-hidden border">
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                      <button type="button" onClick={() => removeVariantImage(i, k)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 text-[10px] flex items-center justify-center">×</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <label className="flex items-center gap-2 border border-dashed rounded p-2 cursor-pointer hover:bg-muted/50 transition-colors">
-                <Upload className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">
-                  {v.newFiles.length > 0 ? `${v.newFiles.length} new file(s)` : "Add images"}
-                </span>
-                <input type="file" accept="image/*" multiple className="hidden" onChange={e => updateVariant(i, { newFiles: Array.from(e.target.files || []) })} />
-              </label>
-            </div>
+            <MultiImageUploader
+              items={v.images}
+              onChange={(items) => updateVariant(i, { images: items })}
+              label="Version Images"
+              help="Upload all photos for this version. First image becomes this version's thumbnail."
+            />
           </div>
         ))}
       </div>
