@@ -21,7 +21,10 @@ export default function AdminProducts() {
   const { data: products = [] } = useQuery({
     queryKey: ["admin-products"],
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("*, category:categories(name)").order("created_at", { ascending: false });
+      const { data } = await supabase
+        .from("products")
+        .select("*, category:categories(name), variants:product_variants(id, design_name, stock)")
+        .order("created_at", { ascending: false });
       return data || [];
     },
   });
@@ -85,42 +88,54 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((p: any) => (
-                <tr key={p.id} className="border-b last:border-0 hover:bg-muted/30">
-                  <td className="p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                        {p.images?.[0] ? (
-                          <img src={p.images[0]} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center">
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                        )}
+              {filtered.map((p: any) => {
+                const productVariants = p.variants || [];
+                const variantStock = productVariants.reduce((sum: number, v: any) => sum + Number(v.stock || 0), 0);
+                const stockDisplay = productVariants.length > 0 ? variantStock : p.stock;
+                const lowVariants = productVariants.filter((v: any) => Number(v.stock || 0) > 0 && Number(v.stock || 0) < 5);
+                return (
+                  <tr key={p.id} className="border-b last:border-0 hover:bg-muted/30">
+                    <td className="p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                          {p.images?.[0] ? (
+                            <img src={p.images[0]} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center">
+                              <Package className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">{p.name}</p>
+                          <p className="text-xs text-muted-foreground sm:hidden">{p.category?.name}</p>
+                          {productVariants.length > 0 && (
+                            <p className="text-xs text-primary">{productVariants.length} version{productVariants.length === 1 ? "" : "s"}</p>
+                          )}
+                          {lowVariants.length > 0 && (
+                            <p className="text-xs text-amber-600 truncate">⚠ {lowVariants.map((v: any) => v.design_name).join(", ")} low</p>
+                          )}
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">{p.name}</p>
-                        <p className="text-xs text-muted-foreground sm:hidden">{p.category?.name}</p>
+                    </td>
+                    <td className="p-3 hidden sm:table-cell text-muted-foreground">{p.category?.name || "—"}</td>
+                    <td className="p-3 text-right">₦{p.price.toLocaleString()}</td>
+                    <td className="p-3 text-right">
+                      <span className={stockDisplay <= 5 ? "text-amber-500 font-bold" : ""}>{stockDisplay}</span>
+                    </td>
+                    <td className="p-3 text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => { setEditProduct(p); setShowForm(true); }}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => { if (confirm("Delete this product?")) deleteMutation.mutate(p.id); }}>
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
                       </div>
-                    </div>
-                  </td>
-                  <td className="p-3 hidden sm:table-cell text-muted-foreground">{p.category?.name || "—"}</td>
-                  <td className="p-3 text-right">₦{p.price.toLocaleString()}</td>
-                  <td className="p-3 text-right">
-                    <span className={p.stock <= 5 ? "text-amber-500 font-bold" : ""}>{p.stock}</span>
-                  </td>
-                  <td className="p-3 text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => { setEditProduct(p); setShowForm(true); }}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => { if (confirm("Delete this product?")) deleteMutation.mutate(p.id); }}>
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
               {filtered.length === 0 && (
                 <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No products found</td></tr>
               )}
