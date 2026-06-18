@@ -153,8 +153,7 @@ type VariantDraft = {
   color: string;
   extra_price: string;
   stock: string;
-  images: string[];
-  newFiles: File[];
+  images: ImageItem[];
   _delete?: boolean;
 };
 
@@ -195,8 +194,7 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
               color: v.color || "",
               extra_price: getVariantPriceInput(product?.price || 0, v.extra_price),
               stock: String(v.stock ?? 0),
-              images: v.images || [],
-              newFiles: [],
+              images: (v.images || []).map((url: string) => ({ kind: "url" as const, url })),
             }))
           );
         }
@@ -217,13 +215,11 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
   };
 
   const addVariant = () =>
-    setVariants(v => [...v, { design_name: "", color: "", extra_price: "0", stock: "0", images: [], newFiles: [] }]);
+    setVariants(v => [...v, { design_name: "", color: "", extra_price: form.price || "0", stock: "0", images: [] }]);
   const removeVariant = (idx: number) =>
     setVariants(vs => vs.map((v, i) => (i === idx ? { ...v, _delete: true } : v)));
   const updateVariant = (idx: number, patch: Partial<VariantDraft>) =>
     setVariants(vs => vs.map((v, i) => (i === idx ? { ...v, ...patch } : v)));
-  const removeVariantImage = (idx: number, imgIdx: number) =>
-    setVariants(vs => vs.map((v, i) => (i === idx ? { ...v, images: v.images.filter((_, k) => k !== imgIdx) } : v)));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -270,14 +266,19 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
           continue;
         }
         if (!v.design_name.trim()) continue;
-        const uploadedUrls = v.newFiles.length > 0 ? await uploadFiles(v.newFiles) : [];
+        const variantFiles = v.images.filter(i => i.kind === "file").map(i => (i as Extract<ImageItem, { kind: "file" }>).file);
+        const uploadedUrls = variantFiles.length > 0 ? await uploadFiles(variantFiles) : [];
+        let variantUploadCursor = 0;
+        const variantImages = v.images.map(it =>
+          it.kind === "url" ? it.url : uploadedUrls[variantUploadCursor++]
+        );
         const variantPayload = {
           product_id: productId,
           design_name: v.design_name.trim(),
           color: v.color.trim() || null,
           extra_price: parseFloat(v.extra_price) || 0,
           stock: parseInt(v.stock) || 0,
-          images: [...v.images, ...uploadedUrls],
+          images: variantImages,
           sort_order: i,
         };
         if (v.id) {
