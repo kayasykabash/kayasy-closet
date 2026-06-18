@@ -8,8 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Upload, Search, Package, AlertTriangle, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Package, AlertTriangle, X } from "lucide-react";
 import { MultiImageUploader, type ImageItem } from "@/components/admin/MultiImageUploader";
+import { getVariantPriceInput } from "@/lib/pricing";
 
 export default function AdminProducts() {
   const qc = useQueryClient();
@@ -20,7 +21,10 @@ export default function AdminProducts() {
   const { data: products = [] } = useQuery({
     queryKey: ["admin-products"],
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("*, category:categories(name)").order("created_at", { ascending: false });
+      const { data } = await supabase
+        .from("products")
+        .select("*, category:categories(name), variants:product_variants(id, design_name, stock)")
+        .order("created_at", { ascending: false });
       return data || [];
     },
   });
@@ -84,42 +88,54 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((p: any) => (
-                <tr key={p.id} className="border-b last:border-0 hover:bg-muted/30">
-                  <td className="p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                        {p.images?.[0] ? (
-                          <img src={p.images[0]} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center">
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                        )}
+              {filtered.map((p: any) => {
+                const productVariants = p.variants || [];
+                const variantStock = productVariants.reduce((sum: number, v: any) => sum + Number(v.stock || 0), 0);
+                const stockDisplay = productVariants.length > 0 ? variantStock : p.stock;
+                const lowVariants = productVariants.filter((v: any) => Number(v.stock || 0) > 0 && Number(v.stock || 0) < 5);
+                return (
+                  <tr key={p.id} className="border-b last:border-0 hover:bg-muted/30">
+                    <td className="p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                          {p.images?.[0] ? (
+                            <img src={p.images[0]} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center">
+                              <Package className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">{p.name}</p>
+                          <p className="text-xs text-muted-foreground sm:hidden">{p.category?.name}</p>
+                          {productVariants.length > 0 && (
+                            <p className="text-xs text-primary">{productVariants.length} version{productVariants.length === 1 ? "" : "s"}</p>
+                          )}
+                          {lowVariants.length > 0 && (
+                            <p className="text-xs text-amber-600 truncate">⚠ {lowVariants.map((v: any) => v.design_name).join(", ")} low</p>
+                          )}
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">{p.name}</p>
-                        <p className="text-xs text-muted-foreground sm:hidden">{p.category?.name}</p>
+                    </td>
+                    <td className="p-3 hidden sm:table-cell text-muted-foreground">{p.category?.name || "—"}</td>
+                    <td className="p-3 text-right">₦{p.price.toLocaleString()}</td>
+                    <td className="p-3 text-right">
+                      <span className={stockDisplay <= 5 ? "text-amber-500 font-bold" : ""}>{stockDisplay}</span>
+                    </td>
+                    <td className="p-3 text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => { setEditProduct(p); setShowForm(true); }}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => { if (confirm("Delete this product?")) deleteMutation.mutate(p.id); }}>
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
                       </div>
-                    </div>
-                  </td>
-                  <td className="p-3 hidden sm:table-cell text-muted-foreground">{p.category?.name || "—"}</td>
-                  <td className="p-3 text-right">₦{p.price.toLocaleString()}</td>
-                  <td className="p-3 text-right">
-                    <span className={p.stock <= 5 ? "text-amber-500 font-bold" : ""}>{p.stock}</span>
-                  </td>
-                  <td className="p-3 text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => { setEditProduct(p); setShowForm(true); }}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => { if (confirm("Delete this product?")) deleteMutation.mutate(p.id); }}>
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
               {filtered.length === 0 && (
                 <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No products found</td></tr>
               )}
@@ -137,8 +153,7 @@ type VariantDraft = {
   color: string;
   extra_price: string;
   stock: string;
-  images: string[];
-  newFiles: File[];
+  images: ImageItem[];
   _delete?: boolean;
 };
 
@@ -177,10 +192,9 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
               id: v.id,
               design_name: v.design_name,
               color: v.color || "",
-              extra_price: String(v.extra_price ?? 0),
+              extra_price: getVariantPriceInput(product?.price || 0, v.extra_price),
               stock: String(v.stock ?? 0),
-              images: v.images || [],
-              newFiles: [],
+              images: (v.images || []).map((url: string) => ({ kind: "url" as const, url })),
             }))
           );
         }
@@ -201,13 +215,11 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
   };
 
   const addVariant = () =>
-    setVariants(v => [...v, { design_name: "", color: "", extra_price: "0", stock: "0", images: [], newFiles: [] }]);
+    setVariants(v => [...v, { design_name: "", color: "", extra_price: form.price || "0", stock: "0", images: [] }]);
   const removeVariant = (idx: number) =>
     setVariants(vs => vs.map((v, i) => (i === idx ? { ...v, _delete: true } : v)));
   const updateVariant = (idx: number, patch: Partial<VariantDraft>) =>
     setVariants(vs => vs.map((v, i) => (i === idx ? { ...v, ...patch } : v)));
-  const removeVariantImage = (idx: number, imgIdx: number) =>
-    setVariants(vs => vs.map((v, i) => (i === idx ? { ...v, images: v.images.filter((_, k) => k !== imgIdx) } : v)));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,14 +266,19 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
           continue;
         }
         if (!v.design_name.trim()) continue;
-        const uploadedUrls = v.newFiles.length > 0 ? await uploadFiles(v.newFiles) : [];
+        const variantFiles = v.images.filter(i => i.kind === "file").map(i => (i as Extract<ImageItem, { kind: "file" }>).file);
+        const uploadedUrls = variantFiles.length > 0 ? await uploadFiles(variantFiles) : [];
+        let variantUploadCursor = 0;
+        const variantImages = v.images.map(it =>
+          it.kind === "url" ? it.url : uploadedUrls[variantUploadCursor++]
+        );
         const variantPayload = {
           product_id: productId,
           design_name: v.design_name.trim(),
           color: v.color.trim() || null,
           extra_price: parseFloat(v.extra_price) || 0,
           stock: parseInt(v.stock) || 0,
-          images: [...v.images, ...uploadedUrls],
+          images: variantImages,
           sort_order: i,
         };
         if (v.id) {
@@ -326,7 +343,7 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
           </Button>
         </div>
         {visibleVariants.length === 0 && (
-          <p className="text-xs text-muted-foreground">No variants yet. Add designs like "Black Senator", "White Senator" — each with their own images, stock and price.</p>
+          <p className="text-xs text-muted-foreground">No versions yet. Add designs like "Black Senator", "White Senator" — each one keeps its own images, stock and final price.</p>
         )}
         {visibleVariants.map(({ v, i }) => (
           <div key={i} className="border rounded-lg p-3 bg-card space-y-2 relative">
@@ -352,33 +369,19 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
                 <Input type="number" value={v.stock} onChange={e => updateVariant(i, { stock: e.target.value })} />
               </div>
               <div>
-                <Label className="text-xs">Extra Price (₦)</Label>
-                <Input type="number" value={v.extra_price} onChange={e => updateVariant(i, { extra_price: e.target.value })} />
+                <Label className="text-xs">Variant Price (₦)</Label>
+                <Input type="number" value={v.extra_price} onChange={e => updateVariant(i, { extra_price: e.target.value })} placeholder="Final selling price" />
               </div>
             </div>
             {parseInt(v.stock) > 0 && parseInt(v.stock) < 5 && (
               <p className="text-xs text-amber-600 flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Low stock</p>
             )}
-            <div>
-              <Label className="text-xs">Images (front, back, side...)</Label>
-              {v.images.length > 0 && (
-                <div className="flex gap-2 mt-1 mb-1 flex-wrap">
-                  {v.images.map((url, k) => (
-                    <div key={k} className="relative w-12 h-12 rounded overflow-hidden border">
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                      <button type="button" onClick={() => removeVariantImage(i, k)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 text-[10px] flex items-center justify-center">×</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <label className="flex items-center gap-2 border border-dashed rounded p-2 cursor-pointer hover:bg-muted/50 transition-colors">
-                <Upload className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">
-                  {v.newFiles.length > 0 ? `${v.newFiles.length} new file(s)` : "Add images"}
-                </span>
-                <input type="file" accept="image/*" multiple className="hidden" onChange={e => updateVariant(i, { newFiles: Array.from(e.target.files || []) })} />
-              </label>
-            </div>
+            <MultiImageUploader
+              items={v.images}
+              onChange={(items) => updateVariant(i, { images: items })}
+              label="Version Images"
+              help="Upload all photos for this version. First image becomes this version's thumbnail."
+            />
           </div>
         ))}
       </div>
