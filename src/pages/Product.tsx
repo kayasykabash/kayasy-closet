@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, Minus, Plus, ShoppingCart, Truck, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductReviews } from "@/components/ProductReviews";
+import { getVariantUnitPrice } from "@/lib/pricing";
 
 const ProductPage = () => {
   const { slug } = useParams();
@@ -75,7 +76,7 @@ const ProductPage = () => {
     );
   }
 
-  const effectivePrice = product.price + Number(selectedVariant?.extra_price || 0);
+  const effectivePrice = selectedVariant ? getVariantUnitPrice(product.price, selectedVariant) : product.price;
   const effectiveStock = selectedVariant ? selectedVariant.stock : product.stock;
   const discount = product.compare_at_price
     ? Math.round(((product.compare_at_price - product.price) / product.compare_at_price) * 100)
@@ -155,7 +156,7 @@ const ProductPage = () => {
 
             <div className="flex items-center gap-3 mb-4">
               <span className="font-heading text-2xl font-bold text-primary">₦{effectivePrice.toLocaleString()}</span>
-              {product.compare_at_price && !selectedVariant?.extra_price && (
+              {product.compare_at_price && !selectedVariant && (
                 <>
                   <span className="text-lg text-muted-foreground line-through">₦{product.compare_at_price.toLocaleString()}</span>
                   <span className="bg-destructive/10 text-destructive text-xs font-bold px-2 py-0.5 rounded">-{discount}%</span>
@@ -196,7 +197,10 @@ const ProductPage = () => {
                             />
                           )}
                         </div>
-                        <p className="text-[10px] font-medium truncate px-1 py-1 leading-tight">{v.design_name}</p>
+                        <div className="px-1 py-1 leading-tight">
+                          <p className="text-[10px] font-medium truncate">{v.design_name}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">₦{getVariantUnitPrice(product.price, v).toLocaleString()}</p>
+                        </div>
                       </button>
                     );
                   })}

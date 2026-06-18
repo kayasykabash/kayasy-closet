@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Upload, Search, Package, AlertTriangle, X } from "lucide-react";
 import { MultiImageUploader, type ImageItem } from "@/components/admin/MultiImageUploader";
+import { getVariantPriceInput } from "@/lib/pricing";
 
 export default function AdminProducts() {
   const qc = useQueryClient();
@@ -177,7 +178,7 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
               id: v.id,
               design_name: v.design_name,
               color: v.color || "",
-              extra_price: String(v.extra_price ?? 0),
+              extra_price: getVariantPriceInput(product?.price || 0, v.extra_price),
               stock: String(v.stock ?? 0),
               images: v.images || [],
               newFiles: [],
@@ -326,7 +327,7 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
           </Button>
         </div>
         {visibleVariants.length === 0 && (
-          <p className="text-xs text-muted-foreground">No variants yet. Add designs like "Black Senator", "White Senator" — each with their own images, stock and price.</p>
+          <p className="text-xs text-muted-foreground">No versions yet. Add designs like "Black Senator", "White Senator" — each one keeps its own images, stock and final price.</p>
         )}
         {visibleVariants.map(({ v, i }) => (
           <div key={i} className="border rounded-lg p-3 bg-card space-y-2 relative">
@@ -352,8 +353,8 @@ function ProductForm({ product, categories, onClose }: { product: any; categorie
                 <Input type="number" value={v.stock} onChange={e => updateVariant(i, { stock: e.target.value })} />
               </div>
               <div>
-                <Label className="text-xs">Extra Price (₦)</Label>
-                <Input type="number" value={v.extra_price} onChange={e => updateVariant(i, { extra_price: e.target.value })} />
+                <Label className="text-xs">Variant Price (₦)</Label>
+                <Input type="number" value={v.extra_price} onChange={e => updateVariant(i, { extra_price: e.target.value })} placeholder="Final selling price" />
               </div>
             </div>
             {parseInt(v.stock) > 0 && parseInt(v.stock) < 5 && (

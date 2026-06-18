@@ -4,6 +4,7 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { getVariantUnitPrice } from "@/lib/pricing";
 
 const CartPage = () => {
   const { cartItems, isLoading, updateQuantity, total } = useCart();
@@ -42,7 +43,7 @@ const CartPage = () => {
                 const product = (item as any).product;
                 const variant = (item as any).variant;
                 const img = (item as any).variant_image || variant?.images?.[0] || product?.images?.[0];
-                const unit = (product?.price || 0) + Number(variant?.extra_price || 0);
+                const unit = getVariantUnitPrice(product?.price || 0, variant);
                 return (
                   <div key={item.id} className="flex gap-4 p-4 border rounded-lg bg-card">
                     <Link to={`/product/${product?.slug}`} className="w-20 h-20 bg-muted rounded overflow-hidden flex-shrink-0">

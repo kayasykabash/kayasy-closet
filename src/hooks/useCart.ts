@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { getVariantUnitPrice } from "@/lib/pricing";
 
 export function useCart() {
   const { user } = useAuth();
@@ -57,9 +58,8 @@ export function useCart() {
   });
 
   const total = cartItems.reduce((sum, item) => {
-    const price = (item as any).product?.price ?? 0;
-    const extra = Number((item as any).variant?.extra_price ?? 0);
-    return sum + (price + extra) * item.quantity;
+    const price = getVariantUnitPrice((item as any).product?.price ?? 0, (item as any).variant);
+    return sum + price * item.quantity;
   }, 0);
 
   return { cartItems, isLoading, addToCart, updateQuantity, clearCart, total, count: cartItems.length };

@@ -14,6 +14,7 @@ import { useDeliveryZones } from "@/hooks/useDeliveryZones";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Banknote, Truck, Store, CreditCard, MapPin } from "lucide-react";
+import { getVariantUnitPrice } from "@/lib/pricing";
 
 type PaymentMethod = "bank_transfer" | "cod" | "pickup" | "credit";
 
@@ -111,7 +112,7 @@ const CheckoutPage = () => {
       const orderItems = cartItems.map((item: any) => {
         const product = item.product;
         const variant = item.variant;
-        const unitPrice = (product?.price || 0) + Number(variant?.extra_price || 0);
+        const unitPrice = getVariantUnitPrice(product?.price || 0, variant);
         return {
           order_id: order.id,
           product_id: item.product_id,
@@ -273,7 +274,7 @@ const CheckoutPage = () => {
             {cartItems.map((item: any) => {
               const product = item.product;
               const variant = item.variant;
-              const unit = (product?.price || 0) + Number(variant?.extra_price || 0);
+              const unit = getVariantUnitPrice(product?.price || 0, variant);
               const label = [variant?.design_name, item.size, item.color].filter(Boolean).join(" / ");
               return (
                 <div key={item.id} className="flex justify-between text-sm py-1">
