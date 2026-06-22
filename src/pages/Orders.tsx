@@ -160,6 +160,21 @@ const OrdersPage = () => {
                     </div>
                   )}
 
+                  {order.payment_proof_url && (
+                    <div className="mt-2 mb-2">
+                      <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                        <ImageIcon className="h-3 w-3" /> Payment Receipt
+                      </p>
+                      <a href={order.payment_proof_url} target="_blank" rel="noopener noreferrer" className="block">
+                        <img
+                          src={order.payment_proof_url}
+                          alt="Payment receipt"
+                          className="w-full max-h-48 object-contain rounded-lg border bg-muted cursor-zoom-in"
+                        />
+                      </a>
+                    </div>
+                  )}
+
                   <div className="space-y-1 text-sm">
                     {(order as any).order_items?.map((item: any) => (
                       <div key={item.id} className="flex justify-between">
