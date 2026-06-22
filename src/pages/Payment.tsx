@@ -69,6 +69,13 @@ const PaymentPage = () => {
     toast.success("Account number copied!");
   };
 
+  const orderRef = order ? `#${order.id.slice(0, 8).toUpperCase()}` : "";
+  const copyRef = () => {
+    if (!order) return;
+    navigator.clipboard.writeText(orderRef);
+    toast.success("Order reference copied!");
+  };
+
   const handleSubmit = async () => {
     if (!user || !order) return;
     if (!proofFile) { toast.error("Please upload proof of payment"); return; }
@@ -129,6 +136,14 @@ const PaymentPage = () => {
         <div className="text-center p-5 rounded-xl border bg-card">
           <p className="text-sm text-muted-foreground mb-1">Total Amount to Pay</p>
           <p className="text-3xl font-heading font-bold text-primary">₦{Number(order.total).toLocaleString()}</p>
+          <div className="flex items-center justify-center gap-2 mt-3 pt-3 border-t border-border/50">
+            <span className="text-xs text-muted-foreground">Order Ref:</span>
+            <span className="font-mono text-sm font-semibold">{orderRef}</span>
+            <Button variant="ghost" size="sm" onClick={copyRef} className="h-6 px-1.5">
+              <Copy className="h-3 w-3" />
+            </Button>
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-2">Use this reference as your transfer narration</p>
         </div>
 
         {/* Bank details */}
@@ -202,15 +217,15 @@ const PaymentPage = () => {
           {submitting ? "Submitting..." : "I Have Made Payment"}
         </Button>
 
-        {/* WhatsApp support */}
+        {/* WhatsApp backup */}
         <a
-          href="https://wa.me/2348000000000?text=Hi%2C%20I%20need%20help%20with%20my%20payment%20for%20order%20" 
+          href={`https://wa.me/2348000000000?text=${encodeURIComponent(`Hi, I just made a payment of ₦${Number(order.total).toLocaleString()} for order ${orderRef}. Here is my receipt.`)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors py-2"
+          className="flex items-center justify-center gap-2 text-sm font-medium text-green-600 hover:text-green-700 transition-colors py-3 rounded-lg border border-green-500/20 bg-green-500/5"
         >
           <MessageCircle className="h-4 w-4" />
-          Need help? Chat with us on WhatsApp
+          Sent payment? Message us your receipt on WhatsApp too
         </a>
       </div>
     </Layout>
