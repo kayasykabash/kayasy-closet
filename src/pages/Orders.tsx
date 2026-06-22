@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Package, CreditCard, Truck, CheckCircle2, XCircle, Clock, AlertTriangle, FileText } from "lucide-react";
+import { Package, CreditCard, Truck, CheckCircle2, XCircle, Clock, AlertTriangle, FileText, ImageIcon } from "lucide-react";
 import { generateInvoicePDF } from "@/lib/invoice";
 import { toast } from "sonner";
 
