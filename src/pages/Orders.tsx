@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Package, CreditCard, Truck, CheckCircle2, XCircle, Clock, AlertTriangle, FileText } from "lucide-react";
+import { Package, CreditCard, Truck, CheckCircle2, XCircle, Clock, AlertTriangle, FileText, ImageIcon } from "lucide-react";
 import { generateInvoicePDF } from "@/lib/invoice";
 import { toast } from "sonner";
 
@@ -157,6 +157,21 @@ const OrdersPage = () => {
                       <span className="font-semibold">
                         {order.payment_status === "paid" ? "Paid ✅" : order.is_overdue ? "Overdue ❌" : "Pending ⏳"}
                       </span>
+                    </div>
+                  )}
+
+                  {order.payment_proof_url && (
+                    <div className="mt-2 mb-2">
+                      <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                        <ImageIcon className="h-3 w-3" /> Payment Receipt
+                      </p>
+                      <a href={order.payment_proof_url} target="_blank" rel="noopener noreferrer" className="block">
+                        <img
+                          src={order.payment_proof_url}
+                          alt="Payment receipt"
+                          className="w-full max-h-48 object-contain rounded-lg border bg-muted cursor-zoom-in"
+                        />
+                      </a>
                     </div>
                   )}
 
