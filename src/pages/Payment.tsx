@@ -69,6 +69,13 @@ const PaymentPage = () => {
     toast.success("Account number copied!");
   };
 
+  const orderRef = order ? `#${order.id.slice(0, 8).toUpperCase()}` : "";
+  const copyRef = () => {
+    if (!order) return;
+    navigator.clipboard.writeText(orderRef);
+    toast.success("Order reference copied!");
+  };
+
   const handleSubmit = async () => {
     if (!user || !order) return;
     if (!proofFile) { toast.error("Please upload proof of payment"); return; }
