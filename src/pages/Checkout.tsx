@@ -155,7 +155,9 @@ const CheckoutPage = () => {
   }
 
   const methods: { id: PaymentMethod; label: string; desc: string; icon: any; disabled?: boolean; recommended?: boolean }[] = [
-    { id: "bank_transfer", label: "Bank Transfer (UBA)", desc: "Recommended — instant, secure transfer to our bank account", icon: Banknote, recommended: true },
+    { id: "bank_transfer", label: "Bank Transfer (UBA)", desc: "Recommended — upload your receipt after transfer for fast confirmation", icon: Banknote, recommended: true },
+    { id: "cod", label: "Pay on Delivery", desc: "Pay with cash or transfer when your order arrives", icon: Truck },
+    { id: "pickup", label: "Pickup at Store", desc: "Pay in person when you collect your order", icon: Store },
     ...(profile?.credit_approved
       ? [{
           id: "credit" as PaymentMethod,
