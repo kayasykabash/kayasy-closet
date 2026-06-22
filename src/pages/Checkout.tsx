@@ -257,7 +257,10 @@ const CheckoutPage = () => {
                   <RadioGroupItem value={m.id} disabled={m.disabled} className="mt-1" />
                   <m.icon className="h-5 w-5 mt-0.5 text-primary shrink-0" />
                   <div className="flex-1">
-                    <p className="font-medium text-sm">{m.label}</p>
+                    <p className="font-medium text-sm flex items-center gap-2">
+                      {m.label}
+                      {m.recommended && <span className="text-[10px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">RECOMMENDED</span>}
+                    </p>
                     <p className="text-xs text-muted-foreground">{m.desc}</p>
                   </div>
                 </label>
