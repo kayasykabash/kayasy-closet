@@ -154,17 +154,17 @@ const CheckoutPage = () => {
     return null;
   }
 
-  const methods: { id: PaymentMethod; label: string; desc: string; icon: any; disabled?: boolean }[] = [
-    { id: "bank_transfer", label: "Bank Transfer", desc: "Pay via UBA bank transfer", icon: Banknote },
-    { id: "cod", label: "Cash on Delivery", desc: "Pay when your order arrives", icon: Truck },
-    { id: "pickup", label: "Cash at Pickup", desc: "Pay when you pick up at store", icon: Store },
-    {
-      id: "credit",
-      label: profile?.credit_approved ? `Credit / Bashi (₦${creditAvailable.toLocaleString()} available)` : "Credit / Bashi (not approved)",
-      desc: "Buy now, pay later",
-      icon: CreditCard,
-      disabled: !profile?.credit_approved,
-    },
+  const methods: { id: PaymentMethod; label: string; desc: string; icon: any; disabled?: boolean; recommended?: boolean }[] = [
+    { id: "bank_transfer", label: "Bank Transfer (UBA)", desc: "Recommended — instant, secure transfer to our bank account", icon: Banknote, recommended: true },
+    ...(profile?.credit_approved
+      ? [{
+          id: "credit" as PaymentMethod,
+          label: `Credit / Bashi (₦${creditAvailable.toLocaleString()} available)`,
+          desc: "Buy now, pay later",
+          icon: CreditCard,
+          disabled: false,
+        }]
+      : []),
   ];
 
   return (
