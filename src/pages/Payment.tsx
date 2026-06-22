@@ -217,15 +217,15 @@ const PaymentPage = () => {
           {submitting ? "Submitting..." : "I Have Made Payment"}
         </Button>
 
-        {/* WhatsApp support */}
+        {/* WhatsApp backup */}
         <a
-          href="https://wa.me/2348000000000?text=Hi%2C%20I%20need%20help%20with%20my%20payment%20for%20order%20" 
+          href={`https://wa.me/2348000000000?text=${encodeURIComponent(`Hi, I just made a payment of ₦${Number(order.total).toLocaleString()} for order ${orderRef}. Here is my receipt.`)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors py-2"
+          className="flex items-center justify-center gap-2 text-sm font-medium text-green-600 hover:text-green-700 transition-colors py-3 rounded-lg border border-green-500/20 bg-green-500/5"
         >
           <MessageCircle className="h-4 w-4" />
-          Need help? Chat with us on WhatsApp
+          Sent payment? Message us your receipt on WhatsApp too
         </a>
       </div>
     </Layout>
