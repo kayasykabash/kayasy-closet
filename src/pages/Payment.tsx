@@ -136,6 +136,14 @@ const PaymentPage = () => {
         <div className="text-center p-5 rounded-xl border bg-card">
           <p className="text-sm text-muted-foreground mb-1">Total Amount to Pay</p>
           <p className="text-3xl font-heading font-bold text-primary">₦{Number(order.total).toLocaleString()}</p>
+          <div className="flex items-center justify-center gap-2 mt-3 pt-3 border-t border-border/50">
+            <span className="text-xs text-muted-foreground">Order Ref:</span>
+            <span className="font-mono text-sm font-semibold">{orderRef}</span>
+            <Button variant="ghost" size="sm" onClick={copyRef} className="h-6 px-1.5">
+              <Copy className="h-3 w-3" />
+            </Button>
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-2">Use this reference as your transfer narration</p>
         </div>
 
         {/* Bank details */}
